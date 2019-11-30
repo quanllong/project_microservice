@@ -11,9 +11,6 @@ import java.io.Serializable;
  * <p>
  * 演员表
  * </p>
- *
- * @author 
- * @since 2019-11-28
  */
 @TableName("mtime_actor_t")
 public class MtimeActorT extends Model<MtimeActorT> {

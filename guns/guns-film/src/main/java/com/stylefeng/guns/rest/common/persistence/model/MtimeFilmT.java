@@ -13,7 +13,7 @@ import java.io.Serializable;
  * 影片主表
  * </p>
  *
- * @author 
+ * @author ys
  * @since 2019-11-28
  */
 @TableName("mtime_film_t")
@@ -25,7 +25,7 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
      * 主键编号
      */
     @TableId(value = "UUID", type = IdType.AUTO)
-    private Integer UUID;
+    private Integer uuid;
     /**
      * 影片名称
      */
@@ -88,12 +88,12 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
     private Integer filmStatus;
 
 
-    public Integer getUUID() {
-        return UUID;
+    public Integer getUuid() {
+        return uuid;
     }
 
-    public void setUUID(Integer UUID) {
-        this.UUID = UUID;
+    public void setUuid(Integer uuid) {
+        this.uuid = uuid;
     }
 
     public String getFilmName() {
@@ -194,25 +194,25 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
 
     @Override
     protected Serializable pkVal() {
-        return this.UUID;
+        return this.uuid;
     }
 
     @Override
     public String toString() {
         return "MtimeFilmT{" +
-        "UUID=" + UUID +
-        ", filmName=" + filmName +
-        ", filmType=" + filmType +
-        ", imgAddress=" + imgAddress +
-        ", filmScore=" + filmScore +
-        ", filmPresalenum=" + filmPresalenum +
-        ", filmBoxOffice=" + filmBoxOffice +
-        ", filmSource=" + filmSource +
-        ", filmCats=" + filmCats +
-        ", filmArea=" + filmArea +
-        ", filmDate=" + filmDate +
-        ", filmTime=" + filmTime +
-        ", filmStatus=" + filmStatus +
-        "}";
+                "uuid=" + uuid +
+                ", filmName=" + filmName +
+                ", filmType=" + filmType +
+                ", imgAddress=" + imgAddress +
+                ", filmScore=" + filmScore +
+                ", filmPresalenum=" + filmPresalenum +
+                ", filmBoxOffice=" + filmBoxOffice +
+                ", filmSource=" + filmSource +
+                ", filmCats=" + filmCats +
+                ", filmArea=" + filmArea +
+                ", filmDate=" + filmDate +
+                ", filmTime=" + filmTime +
+                ", filmStatus=" + filmStatus +
+                "}";
     }
 }

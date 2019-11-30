@@ -11,9 +11,6 @@ import java.io.Serializable;
  * <p>
  * banner信息表
  * </p>
- *
- * @author 
- * @since 2019-11-28
  */
 @TableName("mtime_banner_t")
 public class MtimeBannerT extends Model<MtimeBannerT> {

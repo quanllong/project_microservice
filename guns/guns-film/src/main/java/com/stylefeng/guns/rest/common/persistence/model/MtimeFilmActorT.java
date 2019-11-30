@@ -11,9 +11,6 @@ import java.io.Serializable;
  * <p>
  * 影片与演员映射表
  * </p>
- *
- * @author 
- * @since 2019-11-28
  */
 @TableName("mtime_film_actor_t")
 public class MtimeFilmActorT extends Model<MtimeFilmActorT> {

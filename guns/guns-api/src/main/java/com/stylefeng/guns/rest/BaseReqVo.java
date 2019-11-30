@@ -5,10 +5,13 @@ import lombok.Data;
 public class BaseReqVo<T> {
     T data;
     String msg;
-    int nowPage;
-    int totalPage;
-    String imgPre;
     int status;
+    //ys
+    String imgPre;
+    //cuigx
+    Integer nowPage;
+    Integer TotalPage;
+
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
         baseReqVo.setMsg("成功");
@@ -30,6 +33,14 @@ public class BaseReqVo<T> {
     public static BaseReqVo fail(Object msg){
         BaseReqVo baseReqVo = BaseReqVo.fail();
         baseReqVo.setMsg((String) msg);
+        return baseReqVo;
+    }
+
+    //ys
+    public static BaseReqVo ok(Object data, String imgPre){
+        BaseReqVo baseReqVo = BaseReqVo.ok();
+        baseReqVo.setData(data);
+        baseReqVo.setImgPre(imgPre);
         return baseReqVo;
     }
 }
