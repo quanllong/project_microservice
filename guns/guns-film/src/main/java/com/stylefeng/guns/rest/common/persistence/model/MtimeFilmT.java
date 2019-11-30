@@ -13,8 +13,8 @@ import java.io.Serializable;
  * 影片主表
  * </p>
  *
- * @author ys
- * @since 2019-11-28
+ * @author quanllong
+ * @since 2019-11-27
  */
 @TableName("mtime_film_t")
 public class MtimeFilmT extends Model<MtimeFilmT> {

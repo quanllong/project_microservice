@@ -3,7 +3,9 @@ package com.stylefeng.guns.rest.service;
 import com.stylefeng.guns.rest.service.vo.cinemavo.CinemaInfoVO;
 import com.stylefeng.guns.rest.service.vo.CinemaVO;
 import com.stylefeng.guns.rest.service.vo.cinemavo.FilmInfoVO;
+import com.stylefeng.guns.rest.service.vo.cinemavo.HallInfoVO;
 
+import java.util.HashMap;
 import java.util.List;
 
 public interface CinemaService {
@@ -14,4 +16,8 @@ public interface CinemaService {
 
     // 获取所有电影的信息和对应的放映场次信息，根据电影编号
     List<FilmInfoVO> getFilmInfoByCinemaId(Integer cinemaId);
+
+    FilmInfoVO getFilmInfoByFieldId(Integer fieldId);
+
+    HallInfoVO getFilmFieldInfo(Integer fieldId);
 }

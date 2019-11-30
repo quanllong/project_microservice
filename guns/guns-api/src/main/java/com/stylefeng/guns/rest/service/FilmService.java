@@ -43,4 +43,5 @@ public interface FilmService {
 
     List<YearInfoVO> getyearInfo(Integer yearId);
 
+    FilmVO selectById(Integer id);
 }
