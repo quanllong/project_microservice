@@ -1,6 +1,5 @@
 package com.stylefeng.guns.rest;
 import lombok.Data;
-
 import java.io.Serializable;
 
 @Data
@@ -9,6 +8,8 @@ public class BaseReqVo<T> implements Serializable {
     T data;
     String msg;
     Integer status;
+    String imgPre;
+
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
         baseReqVo.setMsg("成功");
@@ -30,6 +31,13 @@ public class BaseReqVo<T> implements Serializable {
     public static BaseReqVo fail(Object msg){
         BaseReqVo baseReqVo = BaseReqVo.fail();
         baseReqVo.setMsg((String) msg);
+        return baseReqVo;
+    }
+
+    public static BaseReqVo ok(Object data,String imgPre){
+        BaseReqVo baseReqVo = BaseReqVo.ok();
+        baseReqVo.setData(data);
+        baseReqVo.setImgPre(imgPre);
         return baseReqVo;
     }
 }
