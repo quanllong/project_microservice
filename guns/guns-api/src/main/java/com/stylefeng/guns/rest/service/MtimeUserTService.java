@@ -11,4 +11,6 @@ public interface MtimeUserTService {
     List<MtimeUserVO> selectUserByName(String username);
 
     Integer insertUser(RegisterReqVo registerReqVo);
+
+    boolean login(String userName, String password);
 }
