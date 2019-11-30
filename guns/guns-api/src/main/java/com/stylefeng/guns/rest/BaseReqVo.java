@@ -6,6 +6,8 @@ public class BaseReqVo<T> {
     T data;
     String msg;
     int status;
+    Integer nowPage;
+    Integer totalPage;
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
         baseReqVo.setMsg("成功");
