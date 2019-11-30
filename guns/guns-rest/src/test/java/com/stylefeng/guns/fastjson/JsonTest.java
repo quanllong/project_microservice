@@ -16,11 +16,11 @@ import com.stylefeng.guns.rest.modular.auth.converter.BaseTransferEntity;
 public class JsonTest {
 
     public static void main(String[] args) {
-        String randomKey = "1xm7hw";
+        String randomKey = "ea2sha";    // 1xm7hw
 
         BaseTransferEntity baseTransferEntity = new BaseTransferEntity();
         SimpleObject simpleObject = new SimpleObject();
-        simpleObject.setUser("fsn");
+        simpleObject.setUser("admin");    // fsn
         baseTransferEntity.setObject("123123");
 
         String json = JSON.toJSONString(simpleObject);
