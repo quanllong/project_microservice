@@ -13,8 +13,8 @@ import java.io.Serializable;
  * 影片主表
  * </p>
  *
- * @author quanllong
- * @since 2019-11-27
+ * @author 
+ * @since 2019-11-28
  */
 @TableName("mtime_film_t")
 public class MtimeFilmT extends Model<MtimeFilmT> {
@@ -25,7 +25,7 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
      * 主键编号
      */
     @TableId(value = "UUID", type = IdType.AUTO)
-    private Integer uuid;
+    private Integer UUID;
     /**
      * 影片名称
      */
@@ -88,12 +88,12 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
     private Integer filmStatus;
 
 
-    public Integer getUuid() {
-        return uuid;
+    public Integer getUUID() {
+        return UUID;
     }
 
-    public void setUuid(Integer uuid) {
-        this.uuid = uuid;
+    public void setUUID(Integer UUID) {
+        this.UUID = UUID;
     }
 
     public String getFilmName() {
@@ -194,13 +194,13 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
 
     @Override
     protected Serializable pkVal() {
-        return this.uuid;
+        return this.UUID;
     }
 
     @Override
     public String toString() {
         return "MtimeFilmT{" +
-        "uuid=" + uuid +
+        "UUID=" + UUID +
         ", filmName=" + filmName +
         ", filmType=" + filmType +
         ", imgAddress=" + imgAddress +

@@ -5,6 +5,9 @@ import lombok.Data;
 public class BaseReqVo<T> {
     T data;
     String msg;
+    int nowPage;
+    int totalPage;
+    String imgPre;
     int status;
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
