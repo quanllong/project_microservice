@@ -1,9 +1,9 @@
-package com.stylefeng.guns.rest.service.impl;
+package com.stylefeng.guns.rest.modular.user;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.stylefeng.guns.rest.common.persistence.dao.MtimeUserTMapper;
-import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
+import com.stylefeng.guns.rest.service.vo.MtimeUserT;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
 import org.springframework.beans.BeanUtils;
@@ -22,7 +22,7 @@ import java.util.*;
  */
 @Component
 @Service(interfaceClass = MtimeUserTService.class)
-public class MtimeUserTServiceImpl  implements MtimeUserTService {
+public class MtimeUserTServiceImpl implements MtimeUserTService {
 
     @Autowired
     MtimeUserTMapper mtimeUserTMapper;
@@ -65,5 +65,18 @@ public class MtimeUserTServiceImpl  implements MtimeUserTService {
         userT.setUpdateTime(new Date());
         Integer insert = mtimeUserTMapper.insert(userT);
         return insert;
+    }
+
+    @Override
+    public boolean login(String userName, String password) {
+
+        List<MtimeUserVO> list = selectUserByName(userName);
+        if (list != null && list.size() > 0) {
+            MtimeUserVO mtimeUserVO = list.get(0);
+            if (mtimeUserVO.getUserPwd().equals(password)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

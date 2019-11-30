@@ -39,6 +39,17 @@ public class AuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        /*忽略某些url*/
+        String ingoreUrl = jwtProperties.getIgnoreUrl();
+        String[] split = ingoreUrl.split(",");
+        String servletPath = request.getServletPath();
+        for (String path : split) {
+            if (servletPath.contains(path)) {
+                chain.doFilter(request, response);
+                return;
+            }
+        }
+
         if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
             chain.doFilter(request, response);
             return;
