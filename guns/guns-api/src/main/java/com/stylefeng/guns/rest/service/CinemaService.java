@@ -1,10 +1,8 @@
 package com.stylefeng.guns.rest.service;
 
-import com.stylefeng.guns.rest.service.vo.cinemavo.AreaVo;
-import com.stylefeng.guns.rest.service.vo.cinemavo.BrandVo;
+
 import com.stylefeng.guns.rest.service.vo.CinemaVO;
-import com.stylefeng.guns.rest.service.vo.cinemavo.CinemaQueryVo;
-import com.stylefeng.guns.rest.service.vo.cinemavo.HallTypeVo;
+import com.stylefeng.guns.rest.service.vo.cinemavo.*;
 
 import java.util.List;
 
@@ -22,5 +20,11 @@ public interface CinemaService {
     List<AreaVo> selectAreaByBrandId(Integer areaId);
 
     List<HallTypeVo> selectHallByBrandType(Integer hallType);
+
+    // 根据影院编号，获取影院信息
+    CinemaInfoVO getCinemaInfoById(Integer cinemaId);
+
+    // 获取所有电影的信息和对应的放映场次信息，根据电影编号
+    List<FilmInfoVO> getFilmInfoByCinemaId(Integer cinemaId);
 
 }
