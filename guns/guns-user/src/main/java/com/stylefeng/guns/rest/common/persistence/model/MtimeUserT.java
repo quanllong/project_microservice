@@ -209,7 +209,7 @@ public class MtimeUserT extends Model<MtimeUserT> {
 
     @Override
     public String toString() {
-        return "MtimeUserT{" +
+        return "MtimeUserVO{" +
         "uuid=" + uuid +
         ", userName=" + userName +
         ", userPwd=" + userPwd +

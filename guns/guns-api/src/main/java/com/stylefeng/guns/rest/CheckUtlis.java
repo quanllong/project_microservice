@@ -1,4 +1,4 @@
-package com.stylefeng.guns.rest.utils;
+package com.stylefeng.guns.rest;
 
 
 public class CheckUtlis {

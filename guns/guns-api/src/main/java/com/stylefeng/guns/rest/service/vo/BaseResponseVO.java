@@ -1,4 +1,4 @@
-package com.stylefeng.guns.rest.common.persistence.beanvo;
+package com.stylefeng.guns.rest.service.vo;
 
 import lombok.Data;
 import java.io.Serializable;
@@ -28,7 +28,8 @@ public class BaseResponseVO<T> implements Serializable {
 
     public static BaseResponseVO ok() {
         BaseResponseVO<Object> objectBaseResponseVO = new BaseResponseVO<>();
-        objectBaseResponseVO.setMsg("注册成功");
+        objectBaseResponseVO.setMsg(null);
+
         objectBaseResponseVO.setStatus(0);
         return objectBaseResponseVO;
     }

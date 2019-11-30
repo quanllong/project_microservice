@@ -1,18 +1,16 @@
 package com.stylefeng.guns.rest.service.impl;
 
-
-import com.stylefeng.guns.rest.common.persistence.beanvo.RegisterReqVo;
+import com.alibaba.dubbo.config.annotation.Service;
 import com.stylefeng.guns.rest.common.persistence.dao.MtimeUserTMapper;
-import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
-import com.stylefeng.guns.rest.service.IMtimeUserTService;
+import com.stylefeng.guns.rest.service.MtimeUserTService;
+import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
+import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -22,18 +20,27 @@ import java.util.Map;
  * @author wuqiangqiang
  * @since 2019-11-28
  */
-@Service
-public class MtimeUserTServiceImpl extends ServiceImpl<MtimeUserTMapper, MtimeUserT> implements IMtimeUserTService {
+@Component
+@Service(interfaceClass = MtimeUserTService.class)
+public class MtimeUserTServiceImpl  implements MtimeUserTService {
+
     @Autowired
     MtimeUserTMapper mtimeUserTMapper;
 
 
     @Override
-    public List<MtimeUserT> selectUserByName(String username) {
+    public List<MtimeUserVO> selectUserByName(String username) {
         Map<String,Object> map = new HashMap<>();
         map.put("user_name", username);
         List<MtimeUserT> list = mtimeUserTMapper.selectByMap(map);
-        return list;
+        List<MtimeUserVO> userVOList = new ArrayList<>();
+
+        for (MtimeUserT userT : list) {
+            MtimeUserVO mtimeUserVO = new MtimeUserVO();
+            BeanUtils.copyProperties(userT,mtimeUserVO);
+            userVOList.add(mtimeUserVO);
+        }
+        return userVOList;
     }
 
 

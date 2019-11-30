@@ -1,5 +1,4 @@
 package com.stylefeng.guns.rest;
-import com.sun.xml.internal.ws.encoding.soap.SerializerConstants;
 import lombok.Data;
 
 import java.io.Serializable;

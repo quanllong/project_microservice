@@ -4,7 +4,6 @@ import com.stylefeng.guns.rest.service.vo.cinemavo.CinemaInfoVO;
 import com.stylefeng.guns.rest.service.vo.CinemaVO;
 import com.stylefeng.guns.rest.service.vo.cinemavo.FilmInfoVO;
 
-import java.util.HashMap;
 import java.util.List;
 
 public interface CinemaService {
