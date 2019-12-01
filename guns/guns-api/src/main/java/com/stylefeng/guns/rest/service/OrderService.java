@@ -3,6 +3,8 @@ package com.stylefeng.guns.rest.service;
 import com.stylefeng.guns.rest.service.vo.OrderTestVO;
 import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
 
+import java.util.List;
+
 public interface OrderService {
     OrderTestVO queryById(Integer id);
 
@@ -15,4 +17,5 @@ public interface OrderService {
     // 方法接口3，quanllong
     OrderVO saveOrderInfo(String fieldId,String[] seatId,String seatsName,Integer userId);
 
+    List<OrderVO> getOrderByUserId(String nowPage, String pageSize, int userId);
 }

@@ -2,6 +2,7 @@ package com.stylefeng.guns.rest.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.google.gson.Gson;
 import com.stylefeng.guns.rest.common.persistence.dao.*;
 import com.stylefeng.guns.rest.common.persistence.model.*;
@@ -248,4 +249,9 @@ public class OrderServiceImpl implements OrderService {
         return totalPrice;
     }
 
+    @Override
+    public List<OrderVO> getOrderByUserId(String nowPage, String pageSize, int userId) {
+        // Page<T> tPage = new Page<MtimeOrder>(nowPage, pageSize);
+        return null;
+    }
 }
