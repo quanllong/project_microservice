@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Component
@@ -463,7 +464,11 @@ public class FilmServiceImpl implements FilmService {
         info02 = info02 + " / " + mtimeFilmInfoT.getFilmLength();
         data.put("info02",info02);
 
-        String info03 = mtimeFilmT.getFilmTime() + mtimeSourceDictT.getShowName() + "上映";
+        //修改时间格式
+        Date filmTime = mtimeFilmT.getFilmTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time = sdf.format(filmTime);
+        String info03 = time + mtimeSourceDictT.getShowName() + "上映";
         data.put("info03",info03);
 
 
