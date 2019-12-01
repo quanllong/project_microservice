@@ -15,7 +15,11 @@ public interface MtimeUserTService {
 
     Integer insertUser(RegisterReqVo registerReqVo);
 
+<<<<<<< HEAD
     MtimeUserT getMtimeUserT(HttpServletRequest request);
 
     UserModifyVo.UserData userMessModify(MtimeUserT mtimeUser);
+=======
+    boolean login(String userName, String password);
+>>>>>>> a808af76e19b74fabb19ffbf2552afe0b66a4ac5
 }

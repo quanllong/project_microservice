@@ -11,9 +11,6 @@ import java.io.Serializable;
  * <p>
  * 类型信息表
  * </p>
- *
- * @author ys
- * @since 2019-11-28
  */
 @TableName("mtime_cat_dict_t")
 public class MtimeCatDictT extends Model<MtimeCatDictT> {

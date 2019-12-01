@@ -1,14 +1,17 @@
 package com.stylefeng.guns.rest;
+import com.sun.xml.internal.ws.encoding.soap.SerializerConstants;
 import lombok.Data;
-import java.io.Serializable;
 
 @Data
-public class BaseReqVo<T> implements Serializable {
-    private static final long serialVersionUID = 8098787387976159702L;
+public class BaseReqVo<T> {
     T data;
     String msg;
     Integer status;
+    //ys
     String imgPre;
+    //cuigx
+    Integer nowPage;
+    Integer TotalPage;
 
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
@@ -33,8 +36,8 @@ public class BaseReqVo<T> implements Serializable {
         baseReqVo.setMsg((String) msg);
         return baseReqVo;
     }
-
-    public static BaseReqVo ok(Object data,String imgPre){
+    //ys
+    public static BaseReqVo ok(Object data, String imgPre){
         BaseReqVo baseReqVo = BaseReqVo.ok();
         baseReqVo.setData(data);
         baseReqVo.setImgPre(imgPre);

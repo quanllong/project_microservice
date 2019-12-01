@@ -18,7 +18,11 @@ import java.util.Date;
  * @since 2019-11-28
  */
 @TableName("mtime_user_t")
+<<<<<<< HEAD
 public class MtimeUserT extends Model<MtimeUserT> implements Serializable{
+=======
+public class MtimeUserT extends Model<MtimeUserT> {
+>>>>>>> a808af76e19b74fabb19ffbf2552afe0b66a4ac5
 
     private static final long serialVersionUID = 1L;
 
