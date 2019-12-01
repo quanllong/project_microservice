@@ -190,8 +190,10 @@ public class CinemaServiceImpl implements CinemaService {
     public List<FilmInfoVO> getFilmInfoByCinemaId(Integer cinemaId) {
         // 根据影院id查出电影的id，必须去重复。在column前面加上distinct或者group by film_id
         List<String> filmIds = mtimeFieldTMapper.selectFilmIdDistinctByCinemaId(cinemaId);
+
         ArrayList<FilmInfoVO> fieldVOArrayList = new ArrayList<>();
         for (String filmId : filmIds) {
+            // 查出影厅和影片表
             MtimeHallFilmInfoT hallFilmInfoT = new MtimeHallFilmInfoT();
             hallFilmInfoT.setFilmId(Integer.valueOf(filmId));
             MtimeHallFilmInfoT hallFilmInfoT1 = mtimeHallFilmInfoTMapper.selectOne(hallFilmInfoT);
@@ -207,8 +209,9 @@ public class CinemaServiceImpl implements CinemaService {
 
             // 根据电影id查询该电影的场次信息
             List<FilmFieldVO> filmFields = getFilmfieldsByFilmId(cinemaId,filmId);
-            filmInfoVO.setFileFields(filmFields);
+            filmInfoVO.setFilmFields(filmFields);
 
+            // 将查询结果放进结果列表
             fieldVOArrayList.add(filmInfoVO);
         }
         return fieldVOArrayList;
@@ -222,7 +225,8 @@ public class CinemaServiceImpl implements CinemaService {
         params.put("film_id",filmId);
         mtimeFieldTEntityWrapper.allEq(params);
         List<MtimeFieldT> mtimeFieldTS = mtimeFieldTMapper.selectList(mtimeFieldTEntityWrapper);
-        ArrayList<FilmFieldVO> filmFieldVOArrayList = new ArrayList<FilmFieldVO>();
+
+        ArrayList<FilmFieldVO> filmFieldVOArrayList = new ArrayList<>();
         for (MtimeFieldT mtimeFieldT : mtimeFieldTS) {
             FilmFieldVO filmFieldVO = new FilmFieldVO();
             filmFieldVO.setBeginTime(mtimeFieldT.getBeginTime());
@@ -236,6 +240,7 @@ public class CinemaServiceImpl implements CinemaService {
             hallFilmInfoT.setFilmId(mtimeFieldT.getFilmId());
             MtimeHallFilmInfoT hallFilmInfoT1 = mtimeHallFilmInfoTMapper.selectOne(hallFilmInfoT);
             filmFieldVO.setLanguage(hallFilmInfoT1.getFilmLanguage());
+
             filmFieldVO.setPrice(String.valueOf(mtimeFieldT.getPrice()));
             filmFieldVOArrayList.add(filmFieldVO);
         }
@@ -258,7 +263,7 @@ public class CinemaServiceImpl implements CinemaService {
         filmInfoVO.setActors(hallFilmInfoT1.getActors());
         filmInfoVO.setFilmName(hallFilmInfoT1.getFilmName());
         filmInfoVO.setFilmId(String.valueOf(filmId));
-        filmInfoVO.setFileFields(null);
+        filmInfoVO.setFilmFields(null);
         filmInfoVO.setFilmCats(hallFilmInfoT1.getFilmCats());
         return filmInfoVO;
     }

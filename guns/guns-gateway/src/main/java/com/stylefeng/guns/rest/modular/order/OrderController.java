@@ -55,13 +55,14 @@ public class OrderController {
 
     /*
      /order/getOrderInfo
+     查询用户订单
      */
     @RequestMapping("getOrderInfo")
     public BaseReqVo getOrderInfo(String nowPage,String pageSize){
         int userId = 1;
         List<OrderVO> orders = orderService.getOrderByUserId(nowPage,pageSize,userId);
         if(orders != null){
-            return BaseReqVo.ok(orders);
+            return BaseReqVo.ok(orders);        // orderStatus传回来是空字符串，还要转为已关闭，已完成状态
         }
         BaseReqVo fail = BaseReqVo.fail("订单列表为空哦！~");
         fail.setStatus(1);
