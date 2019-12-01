@@ -3,20 +3,13 @@ package com.stylefeng.guns.rest.service;
 import com.stylefeng.guns.rest.service.vo.*;
 
 import java.util.List;
-import java.util.Map;
 
-
+/**
+ * @Author:ys
+ * @Date:2019/11/28
+ * @time:20:44
+ */
 public interface FilmService {
-
-    Map getHotFilms(FilmRequestVO filmRequestVO);
-
-    Map getSoonFilms(FilmRequestVO filmRequestVO);
-
-    Map getClassicFilms(FilmRequestVO filmRequestVO);
-
-    Map films(Integer UUID);
-
-    Map selectByKw(String kw);
 
     //banners
     List<BannersVO> getBanners();
@@ -43,5 +36,6 @@ public interface FilmService {
 
     List<YearInfoVO> getyearInfo(Integer yearId);
 
-    FilmVO selectById(Integer id);
+
+
 }

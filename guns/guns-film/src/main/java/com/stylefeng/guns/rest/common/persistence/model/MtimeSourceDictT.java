@@ -11,6 +11,9 @@ import java.io.Serializable;
  * <p>
  * 区域信息表
  * </p>
+ *
+ * @author ys
+ * @since 2019-11-29
  */
 @TableName("mtime_source_dict_t")
 public class MtimeSourceDictT extends Model<MtimeSourceDictT> {

@@ -1,9 +1,9 @@
 package com.stylefeng.guns.rest.modular.user;
 
-/*import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.dubbo.config.annotation.Service;
 import com.stylefeng.guns.rest.common.persistence.dao.MtimeUserTMapper;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
-import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
+import com.stylefeng.guns.rest.service.vo.MtimeUserT;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
 import org.springframework.beans.BeanUtils;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-*//**
+/**
  * <p>
  * 用户表 服务实现类
  * </p>
  *
  * @author wuqiangqiang
  * @since 2019-11-28
- *//*
+ */
 @Component
 @Service(interfaceClass = MtimeUserTService.class)
 public class MtimeUserTServiceImpl implements MtimeUserTService {
@@ -79,4 +79,4 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
         }
         return false;
     }
-}*/
+}
