@@ -3,13 +3,12 @@ package com.stylefeng.guns.rest.modular.film;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.BaseReqVo;
 import com.stylefeng.guns.rest.service.FilmService;
-import com.stylefeng.guns.rest.service.vo.FilmInfoVO;
-import com.stylefeng.guns.rest.service.vo.FilmRequestVO;
+import com.stylefeng.guns.rest.service.vo.filmvo.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.stylefeng.guns.rest.service.vo.*;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

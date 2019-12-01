@@ -1,6 +1,6 @@
 package com.stylefeng.guns.rest.service;
 
-import com.stylefeng.guns.rest.service.vo.*;
+import com.stylefeng.guns.rest.service.vo.filmvo.*;
 
 import java.util.List;
 import java.util.Map;
