@@ -4,14 +4,15 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.core.exception.GunsException;
 import com.stylefeng.guns.rest.common.exception.BizExceptionEnum;
 import com.stylefeng.guns.rest.modular.auth.controller.dto.AuthRequest;
+import com.stylefeng.guns.rest.modular.auth.controller.dto.AuthResponse;
 import com.stylefeng.guns.rest.modular.auth.util.JwtTokenUtil;
 import com.stylefeng.guns.rest.modular.auth.validator.IReqValidator;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
 import com.stylefeng.guns.rest.service.vo.BaseResponseVO;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,10 +34,8 @@ public class AuthController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-
     @Resource(name = "simpleValidator")
     private IReqValidator reqValidator;
-
 
     @Autowired
     private RedisTemplate redisTemplate;

@@ -3,7 +3,7 @@
 <mapper namespace="com.stylefeng.guns.rest.common.persistence.dao.MtimeUserTMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.stylefeng.guns.rest.service.vo.MtimeUserT">
+    <resultMap id="BaseResultMap" type="com.stylefeng.guns.rest.common.persistence.model.MtimeUserT">
         <id column="UUID" property="uuid" />
         <result column="user_name" property="userName" />
         <result column="user_pwd" property="userPwd" />

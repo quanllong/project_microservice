@@ -1,5 +1,6 @@
 package com.stylefeng.guns.rest.service;
 
+import com.alibaba.dubbo.common.utils.CollectionUtils;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
@@ -8,7 +9,6 @@ import com.stylefeng.guns.rest.common.persistence.model.*;
 import com.stylefeng.guns.rest.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,6 +19,15 @@ public class FilmServiceImpl implements FilmService {
 
     @Autowired
     MtimeFilmTMapper mtimeFilmTMapper;
+
+    @Override
+    public FilmVO selectById(Integer id) {
+        MtimeFilmT mtimeFilmT = mtimeFilmTMapper.selectById(id);
+        FilmVO filmVO = new FilmVO();
+        filmVO.setFilmName(mtimeFilmT.getFilmName());
+        filmVO.setUuid(mtimeFilmT.getUuid());
+        return filmVO;
+    }
     @Autowired
     MtimeFilmInfoTMapper mtimeFilmInfoTMapper;
     @Autowired
