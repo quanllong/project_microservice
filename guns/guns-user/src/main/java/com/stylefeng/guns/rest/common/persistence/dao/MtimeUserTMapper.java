@@ -2,7 +2,7 @@ package com.stylefeng.guns.rest.common.persistence.dao;
 
 
 import com.baomidou.mybatisplus.mapper.BaseMapper;
-import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
+import com.stylefeng.guns.rest.service.vo.MtimeUserT;
 
 /**
  * <p>
@@ -13,5 +13,5 @@ import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
  * @since 2019-11-28
  */
 public interface MtimeUserTMapper extends BaseMapper<MtimeUserT> {
-
+    
 }

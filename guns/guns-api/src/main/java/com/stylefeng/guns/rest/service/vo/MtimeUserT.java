@@ -1,4 +1,4 @@
-package com.stylefeng.guns.rest.common.persistence.model;
+package com.stylefeng.guns.rest.service.vo;
 
 import com.baomidou.mybatisplus.activerecord.Model;
 import com.baomidou.mybatisplus.annotations.TableField;
@@ -18,7 +18,7 @@ import java.util.Date;
  * @since 2019-11-28
  */
 @TableName("mtime_user_t")
-public class MtimeUserT extends Model<MtimeUserT> {
+public class MtimeUserT extends Model<MtimeUserT> implements Serializable{
 
     private static final long serialVersionUID = 1L;
 

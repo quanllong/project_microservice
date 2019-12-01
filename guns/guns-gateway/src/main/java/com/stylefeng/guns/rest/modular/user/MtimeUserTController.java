@@ -3,9 +3,7 @@ package com.stylefeng.guns.rest.modular.user;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.CheckUtlis;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
-import com.stylefeng.guns.rest.service.vo.BaseResponseVO;
-import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
-import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
+import com.stylefeng.guns.rest.service.vo.*;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -96,6 +94,29 @@ public class MtimeUserTController {
         }else {
             return BaseResponseVO.fail("退出失败，用户尚未登陆");
         }
+    }
+
+    //莫智权:
+    // 用户信息查询
+    @RequestMapping("getUserInfo")
+    public UserResponseVo userSearch(javax.servlet.http.HttpServletRequest request){
+        UserResponseVo userSearchVo = new UserResponseVo();
+        MtimeUserT mtimeUser = mtimeUserTService.getMtimeUserT(request);
+
+        userSearchVo.setStatus(0);
+        userSearchVo.setData(mtimeUser);
+
+        return userSearchVo;
+    }
+//    莫智权:
+//     用户信息修改
+    @RequestMapping("updateUserInfo")
+    public UserModifyVo userModify(MtimeUserT mtimeUser){
+        UserModifyVo userModifyVo = new UserModifyVo();
+        UserModifyVo.UserData userData = mtimeUserTService.userMessModify(mtimeUser);
+        userModifyVo.setStatus(0);
+        userModifyVo.setData(userData);
+        return userModifyVo;
     }
 }
 
