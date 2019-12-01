@@ -66,4 +66,9 @@ public class MtimeUserTServiceImpl  implements MtimeUserTService {
         Integer insert = mtimeUserTMapper.insert(userT);
         return insert;
     }
+
+    @Override
+    public boolean login(String userName, String password) {
+        return false;
+    }
 }
