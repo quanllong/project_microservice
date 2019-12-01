@@ -85,4 +85,31 @@ public class CinemaController {
         map.put("filmList",filmList);
         return FieldReqVo.ok(map);
     }
+
+    /*
+    Request URL: http://115.29.141.32/cinema/getFieldInfo?cinemaId=6&fieldId=7
+    Request Method: POST
+     */
+    @RequestMapping(value = "getFieldInfo")
+    public FieldReqVO4Field getFieldInfo(Integer cinemaId, Integer fieldId){
+        /*Integer cinemaId = (Integer) map.get("cinemaId");
+        Integer fieldId = (Integer) map.get("fieldId");*/
+        if (cinemaId == null || fieldId == null){
+            return null;
+        }
+        // 获取影院信息
+        CinemaInfoVO cinemaInfoVO = cinemaService.getCinemaInfoById(cinemaId);
+
+        // 根据放映场次id获取放映信息
+        HallInfoVO hallInfoVO = cinemaService.getFilmFieldInfo(fieldId);
+
+        // 根据放映场次查询播放的电影编号，然后根据电影编号获取对应的电影信息
+        FilmInfoVO filmInfoVO = cinemaService.getFilmInfoByFieldId(fieldId);
+
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("cinemaInfo",cinemaInfoVO);
+        hashMap.put("filmInfo",filmInfoVO);
+        hashMap.put("hallInfo",hallInfoVO);
+        return FieldReqVO4Field.ok(hashMap);
+    }
 }

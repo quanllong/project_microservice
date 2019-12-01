@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import java.util.List;
@@ -24,6 +25,10 @@ public class CinemaServiceImpl implements CinemaService {
     MtimeFieldTMapper mtimeFieldTMapper;
     @Autowired
     MtimeHallFilmInfoTMapper mtimeHallFilmInfoTMapper;
+    @Autowired
+    MtimeFilmTMapper mtimeFilmTMapper;
+    @Autowired
+    MtimeCatDictTMapper mtimeCatDictTMapper;
 
     /**
      * @param id
@@ -237,4 +242,52 @@ public class CinemaServiceImpl implements CinemaService {
         return filmFieldVOArrayList;
     }
 
+    @Override
+    public FilmInfoVO getFilmInfoByFieldId(Integer fieldId) {
+        // 用放映场次Id获得电影Id
+        MtimeFieldT mtimeFieldT = mtimeFieldTMapper.selectById(fieldId);
+        Integer filmId = mtimeFieldT.getFilmId();
+
+        FilmInfoVO filmInfoVO = new FilmInfoVO();
+        MtimeHallFilmInfoT hallFilmInfoT = new MtimeHallFilmInfoT();
+        hallFilmInfoT.setFilmId(filmId);
+        MtimeHallFilmInfoT hallFilmInfoT1 = mtimeHallFilmInfoTMapper.selectOne(hallFilmInfoT);
+        filmInfoVO.setFilmLength(hallFilmInfoT1.getFilmLength());
+        filmInfoVO.setFilmType(hallFilmInfoT1.getFilmLanguage());
+        filmInfoVO.setImgAddress(hallFilmInfoT1.getImgAddress());
+        filmInfoVO.setActors(hallFilmInfoT1.getActors());
+        filmInfoVO.setFilmName(hallFilmInfoT1.getFilmName());
+        filmInfoVO.setFilmId(String.valueOf(filmId));
+        filmInfoVO.setFileFields(null);
+        filmInfoVO.setFilmCats(hallFilmInfoT1.getFilmCats());
+        return filmInfoVO;
+    }
+
+    // #2#4#22#
+    // 根据这个字符串查找分类，并返回字符串喜剧，剧情
+    private String getRealCatsByCatsIndex(String cats){
+        // String substring = cats.replaceAll("#", ",").substring(1, cats.length() - 1); // (2,4,22)的形式
+        String[] catIds = cats.substring(1, cats.length() - 1).split("#");
+        List<String> list = Arrays.asList(catIds);
+
+        List<MtimeCatDictT> catDictTS = mtimeCatDictTMapper.selectList(new EntityWrapper<MtimeCatDictT>().in("UUID", list));
+        StringBuilder stringBuilder = new StringBuilder();
+        for (MtimeCatDictT catDictT : catDictTS) {
+            stringBuilder.append(catDictT.getShowName());
+        }
+        return stringBuilder.toString();
+    }
+
+    @Override
+    public HallInfoVO getFilmFieldInfo(Integer fieldId) {
+        MtimeFieldT mtimeFieldT = mtimeFieldTMapper.selectById(fieldId);
+        HallInfoVO hallInfoVO = new HallInfoVO();
+        hallInfoVO.setDiscountPrice("");
+        hallInfoVO.setHallFieldId(fieldId);
+        hallInfoVO.setHallName(mtimeFieldT.getHallName());
+        hallInfoVO.setPrice(String.valueOf(mtimeFieldT.getPrice()));
+        hallInfoVO.setSeatFile("seats/jumu.json"); // mtime_hall_dict_t
+        hallInfoVO.setSoldSeats(""); // 结合订单来做
+        return hallInfoVO;
+    }
 }
