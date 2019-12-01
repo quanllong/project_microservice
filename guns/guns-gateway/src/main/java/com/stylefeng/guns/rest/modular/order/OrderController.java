@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("order")
 public class OrderController {
 
-    @Reference(interfaceClass = OrderService.class)
+    @Reference(interfaceClass = OrderService.class,check = false)
     OrderService orderService;
 
     @Autowired
