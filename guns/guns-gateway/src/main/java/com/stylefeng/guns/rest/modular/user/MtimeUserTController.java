@@ -2,6 +2,8 @@ package com.stylefeng.guns.rest.modular.user;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.CheckUtlis;
+import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
+import com.stylefeng.guns.rest.config.properties.JwtProperties;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
 import com.stylefeng.guns.rest.service.vo.*;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
@@ -33,6 +35,9 @@ public class MtimeUserTController {
     @Autowired
     RedisTemplate redisTemplate;
 
+    @Autowired
+    JwtProperties jwtProperties;
+
     @RequestMapping("register")
     public BaseResponseVO register(RegisterReqVo registerReqVo) throws ServletException, IOException {
 
@@ -58,7 +63,7 @@ public class MtimeUserTController {
             }
             return BaseResponseVO.systemError("系统出现异常，请联系管理员");
         }
-        return  BaseResponseVO.fail("用户已存在");
+        return  BaseResponseVO.fail("该用户已经注册");
     }
 
 
@@ -85,37 +90,61 @@ public class MtimeUserTController {
 
     @RequestMapping("logout")
     public BaseResponseVO logout(HttpServletRequest request) {
+
        /* ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = servletRequestAttributes.getRequest();*/
-        String token = request.getHeader("Authorization");
-        Boolean delete = redisTemplate.delete(token);
-        if (delete) {
-            return BaseResponseVO.ok("成功退出");
-        }else {
-            return BaseResponseVO.fail("退出失败，用户尚未登陆");
-        }
+       try{
+           String authorization = request.getHeader("Authorization");
+
+           if(authorization == null) {
+               return BaseResponseVO.fail("前端未传入Authorization");
+           }
+           String token = authorization.substring(7);
+           Object o = redisTemplate.opsForValue().get(token);
+           if (o == null) {
+               return BaseResponseVO.fail("退出失败，用户尚未登陆");
+           }
+
+           /*删除 redis中的token*/
+           Boolean delete = redisTemplate.delete(token);
+           if (delete) {
+               return BaseResponseVO.ok("成功退出");
+           }
+       }catch (Exception e){
+           return BaseResponseVO.systemError("系统出现异常，请联系管理员");
+       }
+        return null;
     }
 
     //莫智权:
-    // 用户信息查询
+    // 用户信息
     @RequestMapping("getUserInfo")
     public UserResponseVo userSearch(javax.servlet.http.HttpServletRequest request){
         UserResponseVo userSearchVo = new UserResponseVo();
-        MtimeUserT mtimeUser = mtimeUserTService.getMtimeUserT(request);
+        
+        final String requestHeader = request.getHeader(jwtProperties.getHeader());
+        String token = null;
+        if (requestHeader != null && requestHeader.startsWith("Bearer "))
+            token = requestHeader.substring(7);
 
+        if(token==null){
+            return UserResponseVo.fail("查询失败，用户尚未登陆");
+        }
+        GetUserInfoVo mtimeUser = mtimeUserTService.getMtimeUserVO(token);
+        
         userSearchVo.setStatus(0);
         userSearchVo.setData(mtimeUser);
 
         return userSearchVo;
     }
-//    莫智权:
+//     莫智权:
 //     用户信息修改
     @RequestMapping("updateUserInfo")
-    public UserModifyVo userModify(MtimeUserT mtimeUser){
-        UserModifyVo userModifyVo = new UserModifyVo();
-        UserModifyVo.UserData userData = mtimeUserTService.userMessModify(mtimeUser);
+    public UserResponseVo userModify(GetUserInfoVo mtimeUser){
+        UserResponseVo userModifyVo = new UserResponseVo();
+        GetUserInfoVo user = mtimeUserTService.userMessModify(mtimeUser);
         userModifyVo.setStatus(0);
-        userModifyVo.setData(userData);
+        userModifyVo.setData(user);
         return userModifyVo;
     }
 }

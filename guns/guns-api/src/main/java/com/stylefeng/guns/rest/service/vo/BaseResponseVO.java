@@ -83,4 +83,11 @@ public class BaseResponseVO<T> implements Serializable {
         return objectBaseResponseVO;
     }
 
+    public static BaseResponseVO systemFail(String msg) {
+        BaseResponseVO<Object> objectBaseResponseVO = new BaseResponseVO<>();
+        objectBaseResponseVO.setMsg(msg);
+        objectBaseResponseVO.setStatus(1);
+        return objectBaseResponseVO;
+    }
+
 }

@@ -4,7 +4,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.service.CinemaService;
 import com.stylefeng.guns.rest.service.vo.CinemaVO;
 import com.stylefeng.guns.rest.service.vo.cinemavo.CinemaInfoVO;
-import com.stylefeng.guns.rest.service.vo.cinemavo.FieldReqVO;
+import com.stylefeng.guns.rest.service.vo.cinemavo.FieldReqVO4Field;
 import com.stylefeng.guns.rest.service.vo.cinemavo.FilmInfoVO;
 import com.stylefeng.guns.rest.service.vo.cinemavo.HallInfoVO;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +32,7 @@ public class CinemaController {
     Request Method: GET
      */
     @RequestMapping(value = "getFields",method = RequestMethod.GET)
-    public FieldReqVO getField(Integer cinemaId){
+    public FieldReqVO4Field getField(Integer cinemaId){
         // 获取影院信息
         CinemaInfoVO cinemaInfo = cinemaService.getCinemaInfoById(cinemaId);
         // 获取该影院正在上映的电影
@@ -41,7 +41,7 @@ public class CinemaController {
         HashMap<String, Object> map = new HashMap<>();
         map.put("cinemaInfo",cinemaInfo);
         map.put("filmList",filmList);
-        return FieldReqVO.ok(map);
+        return FieldReqVO4Field.ok(map);
     }
 
     /*
@@ -49,7 +49,7 @@ public class CinemaController {
     Request Method: POST
      */
     @RequestMapping(value = "getFieldInfo")
-    public FieldReqVO getFieldInfo(Integer cinemaId,Integer fieldId){
+    public FieldReqVO4Field getFieldInfo(Integer cinemaId, Integer fieldId){
         /*Integer cinemaId = (Integer) map.get("cinemaId");
         Integer fieldId = (Integer) map.get("fieldId");*/
         if (cinemaId == null || fieldId == null){
@@ -68,6 +68,6 @@ public class CinemaController {
         hashMap.put("cinemaInfo",cinemaInfoVO);
         hashMap.put("filmInfo",filmInfoVO);
         hashMap.put("hallInfo",hallInfoVO);
-        return FieldReqVO.ok(hashMap);
+        return FieldReqVO4Field.ok(hashMap);
     }
 }

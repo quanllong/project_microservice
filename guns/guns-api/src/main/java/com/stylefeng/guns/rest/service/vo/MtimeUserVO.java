@@ -1,6 +1,5 @@
 package com.stylefeng.guns.rest.service.vo;
 import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -12,7 +11,6 @@ public class MtimeUserVO implements Serializable{
     /**
      * 主键编号
      */
-
     private Integer uuid;
     /**
      * 用户账号
