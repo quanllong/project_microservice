@@ -20,7 +20,7 @@ public class PageFactory<T> {
         int limit = Integer.valueOf(request.getParameter("limit"));     //每页多少条数据
         int offset = Integer.valueOf(request.getParameter("offset"));   //每页的偏移量(本页当前有多少条)
         String sort = request.getParameter("sort");         //排序字段名称
-        String order = request.getParameter("order");       //asc或desc(升序或降序)
+        String order = request.getParameter("orderys");       //asc或desc(升序或降序)
         if (ToolUtil.isEmpty(sort)) {
             Page<T> page = new Page<>((offset / limit + 1), limit);
             page.setOpenSort(false);

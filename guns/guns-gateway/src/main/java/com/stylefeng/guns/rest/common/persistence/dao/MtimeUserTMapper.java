@@ -3,6 +3,7 @@ package com.stylefeng.guns.rest.common.persistence.dao;
 
 import com.baomidou.mybatisplus.mapper.BaseMapper;
 import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
+import com.stylefeng.guns.rest.service.vo.GetUserInfoVo;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -19,6 +20,10 @@ import java.util.List;
 public interface MtimeUserTMapper extends BaseMapper<MtimeUserT> {
 
     List<MtimeUserVO> selectByUserName(@Param("name") String username);
-
     List<MtimeUserVO> selectUserByNameAndPwd(@Param("username") String userName, @Param("pwd") String password);
+    
+    //莫智权
+    int updateByMtimeUserT(@Param("user") MtimeUserT mtimeUserT);
+
+    GetUserInfoVo getMtimeUserByUuid(@Param("uuid") int uuid);
 }

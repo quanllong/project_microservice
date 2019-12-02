@@ -1,6 +1,7 @@
 package com.stylefeng.guns.rest.modular.auth.controller;
 
 
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.modular.auth.controller.dto.AuthRequest;
 import com.stylefeng.guns.rest.modular.auth.util.JwtTokenUtil;
 import com.stylefeng.guns.rest.modular.auth.validator.IReqValidator;
@@ -37,6 +38,7 @@ public class AuthController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Reference(interfaceClass = MtimeUserTService.class,check = false)
     @Autowired
     MtimeUserTService mtimeUserTService;
 

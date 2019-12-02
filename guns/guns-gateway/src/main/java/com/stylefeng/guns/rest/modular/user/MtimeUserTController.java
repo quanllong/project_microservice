@@ -2,18 +2,24 @@ package com.stylefeng.guns.rest.modular.user;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.CheckUtlis;
+import com.stylefeng.guns.rest.common.persistence.dao.MtimeUserTMapper;
+import com.stylefeng.guns.rest.config.properties.JwtProperties;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
+import com.stylefeng.guns.rest.service.vo.*;
 import com.stylefeng.guns.rest.service.vo.BaseResponseVO;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -34,6 +40,12 @@ public class MtimeUserTController {
 
     @Autowired
     RedisTemplate redisTemplate;
+
+    @Autowired
+    JwtProperties jwtProperties;
+    
+    @Autowired
+    MtimeUserTMapper mtimeUserTMapper;
 
     @RequestMapping("register")
     public BaseResponseVO register(RegisterReqVo registerReqVo) {
@@ -67,8 +79,6 @@ public class MtimeUserTController {
             return BaseResponseVO.systemError("系统出现异常，请联系管理员");
         }
     }
-
-
     /**
      * 用户名验证接口:查询是否存在该用户
      *
@@ -98,6 +108,74 @@ public class MtimeUserTController {
 HttpServletRequest request2;*/
 
     @RequestMapping("logout")
+    public BaseResponseVO logout(HttpServletRequest request) {
+
+       /* ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = servletRequestAttributes.getRequest();*/
+       try{
+           String authorization = request.getHeader("Authorization");
+
+           if(authorization == null) {
+               return BaseResponseVO.fail("前端未传入Authorization");
+           }
+           String token = authorization.substring(7);
+           Object o = redisTemplate.opsForValue().get(token);
+           if (o == null) {
+               return BaseResponseVO.fail("退出失败，用户尚未登陆");
+           }
+
+           /*删除 redis中的token*/
+           Boolean delete = redisTemplate.delete(token);
+           if (delete) {
+               return BaseResponseVO.ok("成功退出");
+           }
+       }catch (Exception e){
+           return BaseResponseVO.systemError("系统出现异常，请联系管理员");
+       }
+        return null;
+    }
+
+    //莫智权:
+    // 用户信息展示
+    @RequestMapping("getUserInfo")
+    public UserResponseVo userSearch(HttpServletRequest request){
+        UserResponseVo userSearchVo = new UserResponseVo();
+
+        String token = getToken(request);
+        if(token==null){
+            return UserResponseVo.fail("查询失败，用户尚未登陆");
+        }
+        GetUserInfoVo mtimeUser = mtimeUserTService.getMtimeUserVO(token);
+        int uuid = mtimeUser.getUuid();//通过token获得uuid
+        
+        //通过uuid从数据库获得对象信息
+        GetUserInfoVo getUserInfoVo = mtimeUserTMapper.getMtimeUserByUuid(uuid);
+
+        userSearchVo.setStatus(0);
+        userSearchVo.setData(getUserInfoVo);
+
+        return userSearchVo;
+    }
+//     莫智权:
+//     用户信息修改
+    @RequestMapping("updateUserInfo")
+    public UserResponseVo userModify(GetUserInfoVo mtimeUser) {
+        UserResponseVo userModifyVo = new UserResponseVo();
+        GetUserInfoVo user = mtimeUserTService.userMessModify(mtimeUser);
+        userModifyVo.setStatus(0);
+        userModifyVo.setData(user);
+        return userModifyVo;
+    }
+
+    //获取token
+    public String getToken(HttpServletRequest request){
+        final String requestHeader = request.getHeader(jwtProperties.getHeader());
+        String token = null;
+        if (requestHeader != null && requestHeader.startsWith("Bearer "))
+            token = requestHeader.substring(7);
+
+        return token;
+    }
     public BaseResponseVO logout() {
         /*String method = request2.getMethod();
         String authorization1 = request2.getHeader("Authorization");*/

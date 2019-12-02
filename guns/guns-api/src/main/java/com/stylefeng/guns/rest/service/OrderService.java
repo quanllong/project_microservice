@@ -3,7 +3,6 @@ package com.stylefeng.guns.rest.service;
 import com.stylefeng.guns.rest.service.vo.OrderTestVO;
 import com.stylefeng.guns.rest.service.vo.cinemavo.HallInfoVO;
 import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
-
 import java.util.List;
 
 public interface OrderService {

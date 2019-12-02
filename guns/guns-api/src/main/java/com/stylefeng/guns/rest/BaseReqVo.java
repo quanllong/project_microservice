@@ -30,7 +30,7 @@ public class BaseReqVo<T> implements Serializable {
     public static BaseReqVo fail(){
         BaseReqVo baseReqVo = new BaseReqVo();
         baseReqVo.setMsg("失败");
-        baseReqVo.setStatus(500);
+        baseReqVo.setStatus(999);
         return baseReqVo;
     }
     // quanllong

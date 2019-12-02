@@ -1,6 +1,7 @@
 package com.stylefeng.guns.rest.service.vo.filmvo;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -26,11 +27,19 @@ public class  FilmInfoVO implements Serializable {
 
     private String filmScore;
 
+    private String score;
+
     private Integer expectNum;
 
-    private Date showTime;
+    private String showTime;
 
     private Integer boxNum;
+
+    private String filmLength;
+
+    private String filmCats;
+
+    private String actors;
 
     private String filmImgs;
 }
