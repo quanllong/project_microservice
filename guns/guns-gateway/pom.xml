@@ -39,10 +39,23 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
+        <!--公共api-->
         <dependency>
             <groupId>com.stylefeng.guns</groupId>
             <artifactId>guns-api</artifactId>
             <version>0.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.spring.boot</groupId>
+            <artifactId>dubbo-spring-boot-starter</artifactId>
+            <version>2.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>2.0.6.RELEASE</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>

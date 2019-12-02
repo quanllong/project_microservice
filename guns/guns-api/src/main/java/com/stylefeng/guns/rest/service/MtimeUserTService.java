@@ -1,6 +1,6 @@
 package com.stylefeng.guns.rest.service;
 
-
+import com.stylefeng.guns.rest.service.vo.GetUserInfoVo;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
 import java.util.List;
@@ -12,4 +12,8 @@ public interface MtimeUserTService {
     Integer insertUser(RegisterReqVo registerReqVo);
 
     boolean login(String userName, String password);
+    
+    GetUserInfoVo getMtimeUserVO(String token);
+
+    GetUserInfoVo userMessModify(GetUserInfoVo userInfoVo);
 }

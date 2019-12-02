@@ -11,7 +11,6 @@ public class MtimeUserVO implements Serializable{
     /**
      * 主键编号
      */
-
     private Integer uuid;
     /**
      * 用户账号

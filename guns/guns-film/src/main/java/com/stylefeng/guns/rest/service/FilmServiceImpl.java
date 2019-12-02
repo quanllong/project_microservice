@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.*;
-
 @Component
 @Service(interfaceClass = FilmService.class)
 public class FilmServiceImpl implements FilmService {
@@ -135,7 +137,10 @@ public class FilmServiceImpl implements FilmService {
             filmInfoVo.setImgAddress(mtimeFilmT.getImgAddress());
             filmInfoVo.setFilmName(mtimeFilmT.getFilmName());
             filmInfoVo.setExpectNum(mtimeFilmT.getFilmPresalenum());
-            filmInfoVo.setShowTime(mtimeFilmT.getFilmTime());
+            Date filmTime = mtimeFilmT.getFilmTime();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            String format = simpleDateFormat.format(filmTime);
+            filmInfoVo.setShowTime(format);
             filmInfoVoList.add(filmInfoVo);
         }
         return filmInfoVoList;
@@ -184,12 +189,22 @@ public class FilmServiceImpl implements FilmService {
 
     private List<FilmInfoVO> conver2ExpectRanking(List<MtimeFilmT> mtimeFilmTS) {
         ArrayList<FilmInfoVO> list = new ArrayList<>();
-        for (MtimeFilmT mtimeFilmT : mtimeFilmTS) {
+        for (int i = 0; i <mtimeFilmTS.size() ; i++) {
             FilmInfoVO filmInfoVO = new FilmInfoVO();
-            filmInfoVO.setFilmId(mtimeFilmT.getUuid() + "");
-            filmInfoVO.setImgAddress(mtimeFilmT.getImgAddress());
-            filmInfoVO.setFilmName(mtimeFilmT.getFilmName());
-            filmInfoVO.setExpectNum(mtimeFilmT.getFilmPresalenum());
+            filmInfoVO.setFilmId(mtimeFilmTS.get(i).getUuid() + "");
+            filmInfoVO.setImgAddress(mtimeFilmTS.get(i).getImgAddress());
+            filmInfoVO.setFilmName(mtimeFilmTS.get(i).getFilmName());
+            filmInfoVO.setExpectNum(mtimeFilmTS.get(i).getFilmPresalenum());
+            filmInfoVO.setScore(mtimeFilmTS.get(i).getFilmScore());
+            filmInfoVO.setExpectNum(mtimeFilmTS.get(i).getFilmPresalenum());
+            filmInfoVO.setBoxNum(mtimeFilmTS.get(i).getFilmBoxOffice());
+
+            if (i == 0){
+                Date filmTime = mtimeFilmTS.get(i).getFilmTime();
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String format = simpleDateFormat.format(filmTime);
+                filmInfoVO.setShowTime(format);
+            }
             list.add(filmInfoVO);
         }
         return list;
@@ -276,6 +291,7 @@ public class FilmServiceImpl implements FilmService {
             filmInfoVO.setImgAddress(mtimeFilmT.getImgAddress());
             filmInfoVO.setFilmName(mtimeFilmT.getFilmName());
             filmInfoVO.setFilmScore(mtimeFilmT.getFilmScore());
+            filmInfoVO.setScore(mtimeFilmT.getFilmScore());
             list.add(filmInfoVO);
         }
         return list;

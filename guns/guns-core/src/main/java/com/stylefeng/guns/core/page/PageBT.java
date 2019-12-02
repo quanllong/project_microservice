@@ -59,7 +59,7 @@ public class PageBT {
 
     @Override
     public String toString() {
-        return "PageBT [limit=" + limit + ", offset=" + offset + ", order=" + order + "]";
+        return "PageBT [limit=" + limit + ", offset=" + offset + ", orderys=" + order + "]";
     }
 
 }
