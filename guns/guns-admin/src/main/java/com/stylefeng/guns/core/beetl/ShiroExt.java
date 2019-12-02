@@ -15,11 +15,11 @@
  */
 package com.stylefeng.guns.core.beetl;
 
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.beetl.core.GroupTemplate;
 
 import com.stylefeng.guns.core.shiro.ShiroUser;
+
+import javax.security.auth.Subject;
 
 public class ShiroExt {
     private static final String NAMES_DELIMETER = ",";
