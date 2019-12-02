@@ -50,7 +50,6 @@ public class BaseResponseVO<T> implements Serializable {
 
     /**
      * 注册失败:用户已存在
-     * @param msg
      * @return
      */
     public static BaseResponseVO registerFail() {

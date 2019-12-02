@@ -1,5 +1,6 @@
-package com.stylefeng.guns.rest.service.vo;
+package com.stylefeng.guns.rest.service.vo.filmvo;
 
+import com.stylefeng.guns.rest.service.vo.filmvo.FilmInfoVO;
 import lombok.Data;
 
 import java.io.Serializable;

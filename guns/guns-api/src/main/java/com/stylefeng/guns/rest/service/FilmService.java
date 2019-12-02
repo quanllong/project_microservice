@@ -1,12 +1,14 @@
 package com.stylefeng.guns.rest.service;
 
-import com.stylefeng.guns.rest.service.vo.*;
+import com.stylefeng.guns.rest.service.vo.filmvo.*;
 
 import java.util.List;
 import java.util.Map;
 
 
 public interface FilmService {
+
+    FilmVO selectById(Integer id);
 
     Map getHotFilms(FilmRequestVO filmRequestVO);
 
@@ -43,5 +45,6 @@ public interface FilmService {
 
     List<YearInfoVO> getyearInfo(Integer yearId);
 
-    FilmVO selectById(Integer id);
+
+
 }

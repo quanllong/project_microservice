@@ -20,15 +20,77 @@
         <result column="update_time" property="updateTime" />
     </resultMap>
 
-    <!--by wuqiangqiang-->
-    <select id="selectByUserName" resultType="com.stylefeng.guns.rest.service.vo.MtimeUserVO">
+    
+    <resultMap id="myresutmap" type="com.stylefeng.guns.rest.service.vo.MtimeUserVO">
+        <id column="UUID" property="uuid"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_pwd" property="userPwd"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="user_sex" property="userSex"/>
+        <result column="birthday" property="birthday"/>
+        <result column="email" property="email"/>
+        <result column="user_phone" property="userPhone"/>
+        <result column="address" property="address"/>
+        <result column="head_url" property="headUrl"/>
+        <result column="biography" property="biography"/>
+        <result column="life_state" property="lifeState"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="begin_time" property="beginTime"/>
+    </resultMap>
+    <select id="selectByUserName" resultMap="myresutmap">
         select `UUID`,`user_name`,
-        `user_pwd`,`nick_name`,
+        `user_pwd`,`nick_name` ,
         `user_sex`,`birthday`,
         `email`,`user_phone`,
         `address`,`head_url`,
         `biography`,`life_state`,
         `begin_time`,`update_time`
         from `mtime_user_t` where `user_name` = #{name,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectUserByNameAndPwd" resultMap="myresutmap">
+        select `UUID`,`user_name`,
+        `user_pwd`,`nick_name` ,
+        `user_sex`,`birthday`,
+        `email`,`user_phone`,
+        `address`,`head_url`,
+        `biography`,`life_state`,
+        `begin_time`,`update_time`
+        from `mtime_user_t` where `user_name` = #{username,jdbcType=VARCHAR} and `user_pwd` = #{pwd,jdbcType=VARCHAR}
+    </select>
+    <!--莫智权  用户信息修改 数据库更新-->
+    <update id="updateByMtimeUserT">
+        update mtime_user_t 
+        set 
+        user_name=#{user.userName},
+        nick_name=#{user.nickName},
+        user_sex=#{user.userSex},
+        birthday=#{user.birthday},
+        email=#{user.email},
+        user_phone=#{user.userPhone},
+        address=#{user.address},
+        head_url=#{user.headUrl},
+        biography=#{user.biography},
+        life_state=#{user.lifeState},
+        update_time=#{user.updateTime},
+        begin_time=#{user.beginTime}
+        where UUID=#{user.uuid}
+    </update>
+    <select id="getMtimeUserByUuid" resultType="com.stylefeng.guns.rest.service.vo.GetUserInfoVo">
+        select 
+        `UUID` as uuid,
+        `user_name` as username,
+        `nick_name` as nickname,
+        `user_sex` as sex,
+        `birthday` as birthday,
+        `email` as email,
+        `user_phone` as phone,
+        `address` as address,
+        `head_url` as headAddress,
+        `biography` as biography,
+        `life_state` as lifeState,
+        `begin_time` as begainTime,
+        `update_time` as updateTime
+        from `mtime_user_t` where UUID=#{uuid}
     </select>
 </mapper>

@@ -93,8 +93,9 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
     @Override
     public GetUserInfoVo getMtimeUserVO(String token) {
         GetUserInfoVo mtimeUserVo = new GetUserInfoVo();
-        MtimeUserT user = (MtimeUserT) redisTemplate.opsForValue().get(token);
-
+        
+        MtimeUserVO user = (MtimeUserVO) redisTemplate.opsForValue().get(token);
+        
         if(user==null){
             //抛出异常
             return null;
@@ -117,11 +118,13 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
         return mtimeUserVo;
     }
 
+    //修改
     @Override
     public GetUserInfoVo userMessModify(GetUserInfoVo userInfoVo) {
         userInfoVo.setUpdateTime(new Date());
         MtimeUserT mtimeUserT = getMtimeUserT(userInfoVo);
-        mtimeUserTMapper.updateById(mtimeUserT);
+
+        int i = mtimeUserTMapper.updateByMtimeUserT(mtimeUserT);
         
         return userInfoVo;
     }

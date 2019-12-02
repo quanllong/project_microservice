@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Request Method: GET
  */
 @Data
-public class FieldReqVO implements Serializable {
+public class FieldReqVo implements Serializable {
     private static final long serialVersionUID = -6111649945260539344L;
     String imgPre = "http://img.meetingshop.cn";    // 写固定的
     String msg = "";
@@ -18,14 +18,14 @@ public class FieldReqVO implements Serializable {
     Integer status;
     Object data;
 
-    public static FieldReqVO ok(){
-        FieldReqVO fieldReqVo = new FieldReqVO();
+    public static FieldReqVo ok(){
+        FieldReqVo fieldReqVo = new FieldReqVo();
         fieldReqVo.setStatus(0);
         return fieldReqVo;
     }
 
-    public static FieldReqVO ok(Object data){
-        FieldReqVO fieldReqVo = FieldReqVO.ok();
+    public static FieldReqVo ok(Object data){
+        FieldReqVo fieldReqVo = FieldReqVo.ok();
         fieldReqVo.setData(data);
         return fieldReqVo;
     }

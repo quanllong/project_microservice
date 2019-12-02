@@ -6,10 +6,11 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.stylefeng.guns.rest.common.persistence.dao.*;
 import com.stylefeng.guns.rest.common.persistence.model.*;
-import com.stylefeng.guns.rest.service.vo.*;
+import com.stylefeng.guns.rest.service.vo.filmvo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Component
@@ -18,15 +19,6 @@ public class FilmServiceImpl implements FilmService {
 
     @Autowired
     MtimeFilmTMapper mtimeFilmTMapper;
-
-    @Override
-    public FilmVO selectById(Integer id) {
-        MtimeFilmT mtimeFilmT = mtimeFilmTMapper.selectById(id);
-        FilmVO filmVO = new FilmVO();
-        filmVO.setFilmName(mtimeFilmT.getFilmName());
-        filmVO.setUuid(mtimeFilmT.getUuid());
-        return filmVO;
-    }
     @Autowired
     MtimeFilmInfoTMapper mtimeFilmInfoTMapper;
     @Autowired
@@ -47,6 +39,15 @@ public class FilmServiceImpl implements FilmService {
     MtimeSourceDictTMapper sourceDictTMapper;
     @Autowired
     MtimeYearDictTMapper yearDictTMapper;
+
+    @Override
+    public FilmVO selectById(Integer id) {
+        MtimeFilmT mtimeFilmT = mtimeFilmTMapper.selectById(id);
+        FilmVO filmVO = new FilmVO();
+        filmVO.setFilmName(mtimeFilmT.getFilmName());
+        filmVO.setUuid(mtimeFilmT.getUuid());
+        return filmVO;
+    }
 
     @Override
     public List<BannersVO> getBanners() {
@@ -472,7 +473,11 @@ public class FilmServiceImpl implements FilmService {
         info02 = info02 + " / " + mtimeFilmInfoT.getFilmLength();
         data.put("info02",info02);
 
-        String info03 = mtimeFilmT.getFilmTime() + mtimeSourceDictT.getShowName() + "上映";
+        //修改时间格式
+        Date filmTime = mtimeFilmT.getFilmTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time = sdf.format(filmTime);
+        String info03 = time + mtimeSourceDictT.getShowName() + "上映";
         data.put("info03",info03);
 
 

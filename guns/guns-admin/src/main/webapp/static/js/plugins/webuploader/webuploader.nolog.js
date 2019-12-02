@@ -5197,7 +5197,6 @@
      */
 
     // Sample
-    // ====================================
     // Make : Apple
     // Model : iPhone 4S
     // Orientation : 1
