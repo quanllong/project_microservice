@@ -53,12 +53,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+<<<<<<< HEAD
         <!--mybatis plus的支持-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-support</artifactId>
             <version>2.3</version>
         </dependency>
+=======
+>>>>>>> 911b246e860cf08d700b09ddbfdc37aa02acdbf0
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
