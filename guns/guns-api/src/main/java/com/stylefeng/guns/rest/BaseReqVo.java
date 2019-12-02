@@ -10,7 +10,7 @@ public class BaseReqVo<T> {
     String imgPre;
     //cuigx
     Integer nowPage;
-    Integer TotalPage;
+    Integer totalPage;
 
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
