@@ -68,8 +68,9 @@ public class OrderServiceImpl implements OrderService {
         }
         // 用户可能选中多个座位，只要有一个座位不是当前影厅的座位，就返回false
         String ids = seats.getIds();
+        List<String> list = Arrays.asList(ids.split(", "));
         for (String id: seatId){
-            if(! ids.contains(id)){
+            if(! list.contains(id)){
                 return false;
             }
         }
@@ -90,11 +91,11 @@ public class OrderServiceImpl implements OrderService {
         // 如果是全部，则默认是imax厅
         String seatAddress = mtimeHallDictT.getSeatAddress();
         if (seatAddress == null){
-            seatAddress = "imax.json";
+            seatAddress = "seats/imax.json";
         }
 
         // 尝试取出座位表对象，如果取出的对象为空，则说明reids还没有
-        Seats seatsInRedis = (Seats) redisTemplate.opsForValue().get("seatAddress");
+        Seats seatsInRedis = (Seats) redisTemplate.opsForValue().get(seatAddress);
         if(seatsInRedis != null){
             return seatsInRedis;
         }
@@ -135,9 +136,11 @@ public class OrderServiceImpl implements OrderService {
     public Boolean isSoldSeats(String fieldId, String[] seatId) {
         // 调用方法获取售出座位
         String soldSeats = getSoldSeatsByFieldId(fieldId);
+        // 将它转为列表，方便判断
+        List<String> list = Arrays.asList(soldSeats.split(","));
         // 判断座位是否已售出
         for (String s : seatId) {
-            if(soldSeats.contains(s)){
+            if(list.contains(s)){
                 return true;
             }
         }
@@ -154,6 +157,10 @@ public class OrderServiceImpl implements OrderService {
     private String getSoldSeatsByFieldId(String fieldId){
         // 获得订单信息
         List<MoocOrderT> fields = moocOrderTMapper.selectList(new EntityWrapper<MoocOrderT>().eq("field_id", fieldId));
+        // 如果一张都没卖出过，fields为空
+        if(CollectionUtils.isEmpty(fields)){
+            return "";
+        }
         // 统计已售出的座位
         StringBuilder builder = new StringBuilder();
         for (MoocOrderT field : fields) {
@@ -335,10 +342,17 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    public HallInfoVO getFilmFieldInfo(Integer fieldId) {
+    public HallInfoVO getFilmFieldInfo(Integer cinemaId,Integer fieldId) {
         // 获取场次
-        MtimeFieldT mtimeFieldT = mtimeFieldTMapper.selectById(fieldId);
+        EntityWrapper<MtimeFieldT> wrapper = new EntityWrapper<>();
+        wrapper.eq("UUID",fieldId).eq("cinema_id",cinemaId);
+        List<MtimeFieldT> mtimeFieldTS = mtimeFieldTMapper.selectList(wrapper);
+        // 如果为空，返回一个什么都没有的对象
+        if (CollectionUtils.isEmpty(mtimeFieldTS)){
+            return null;
+        }
 
+        MtimeFieldT mtimeFieldT = mtimeFieldTS.get(0);
         HallInfoVO hallInfoVO = new HallInfoVO();
         hallInfoVO.setDiscountPrice("");
         hallInfoVO.setHallFieldId(fieldId);

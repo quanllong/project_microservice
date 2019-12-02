@@ -21,5 +21,5 @@ public interface OrderService {
     List<OrderVO> getOrderByUserId(String nowPage, String pageSize, int userId);
 
     // 供影院模块的接口4的方法2使用
-    HallInfoVO getFilmFieldInfo(Integer fieldId);
+    HallInfoVO getFilmFieldInfo(Integer cameraId,Integer fieldId);
 }
