@@ -1,5 +1,6 @@
 package com.stylefeng.guns.rest.service;
 
+import com.alibaba.dubbo.common.utils.CollectionUtils;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
@@ -8,16 +9,10 @@ import com.stylefeng.guns.rest.common.persistence.model.*;
 import com.stylefeng.guns.rest.service.vo.filmvo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * @Author:ys
- * @Date:2019/11/28
- * @time:21:42
- */
 @Component
 @Service(interfaceClass = FilmService.class)
 public class FilmServiceImpl implements FilmService {
@@ -44,6 +39,15 @@ public class FilmServiceImpl implements FilmService {
     MtimeSourceDictTMapper sourceDictTMapper;
     @Autowired
     MtimeYearDictTMapper yearDictTMapper;
+
+    @Override
+    public FilmVO selectById(Integer id) {
+        MtimeFilmT mtimeFilmT = mtimeFilmTMapper.selectById(id);
+        FilmVO filmVO = new FilmVO();
+        filmVO.setFilmName(mtimeFilmT.getFilmName());
+        filmVO.setUuid(mtimeFilmT.getUuid());
+        return filmVO;
+    }
 
     @Override
     public List<BannersVO> getBanners() {
@@ -469,30 +473,30 @@ public class FilmServiceImpl implements FilmService {
         info02 = info02 + " / " + mtimeFilmInfoT.getFilmLength();
         data.put("info02",info02);
 
-        //�޸�ʱ���ʽ
+        //修改时间格式
         Date filmTime = mtimeFilmT.getFilmTime();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String time = sdf.format(filmTime);
-        String info03 = time + mtimeSourceDictT.getShowName() + "��ӳ";
+        String info03 = time + mtimeSourceDictT.getShowName() + "上映";
         data.put("info03",info03);
 
 
-        //��Ա
+        //演员
         EntityWrapper entityWrapper = new EntityWrapper();
         entityWrapper.eq("film_id",mtimeFilmInfoT.getFilmId());
         List<MtimeFilmActorT> film_actor = mtimeFilmActorTMapper.selectList(entityWrapper);
-        //��Ӧ���ڲ�actors
+        //响应体内部actors
         List actors_a = new ArrayList();
         for (int i = 0; i < film_actor.size(); i++) {
             MtimeActorT mtimeActorT = mtimeActorTMapper.selectById(film_actor.get(i).getActorId());
             ActorVO temp = new ActorVO();
             temp.setDirectorName(mtimeActorT.getActorName());
             temp.setImgAddress(mtimeActorT.getActorImg());
-            temp.setRoleName("��Ա"+(i+1));
+            temp.setRoleName("演员"+(i+1));
             actors_a.add(temp);
         }
 
-        //����
+        //导演
         MtimeActorT mtimeActorT = mtimeActorTMapper.selectById(mtimeFilmInfoT.getDirectorId());
         ActorVO director = new ActorVO();
         director.setDirectorName(mtimeActorT.getActorName());
