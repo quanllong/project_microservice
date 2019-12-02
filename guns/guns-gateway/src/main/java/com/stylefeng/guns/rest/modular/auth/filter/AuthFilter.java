@@ -72,7 +72,6 @@ public class AuthFilter extends OncePerRequestFilter {
                 /*通过token验证*/
                 chain.doFilter(request, response);
                 return;
-
             }catch (Exception e) {
                 //有异常就是token解析失败
                 /*服务器异常*/
@@ -80,9 +79,9 @@ public class AuthFilter extends OncePerRequestFilter {
                 return;
             }
         }else {
-            //header没有带Bearer字段
-            /*其实是不会进入这条语句的*/
-            RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_ERROR.getMessage()));
+            /*header没有带Bearer字段或者为null*/
+            /*未登录*/
+            RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_WA.getMessage()));
             return;
         }
     }
