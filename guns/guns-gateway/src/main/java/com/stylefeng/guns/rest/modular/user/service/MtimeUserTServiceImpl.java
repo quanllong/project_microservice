@@ -43,20 +43,12 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
         map.put("user_name", username);
         List<MtimeUserVO> list = mtimeUserTMapper.selectByUserName(username);
         return list;
-
-        /*List<MtimeUserVO> userVOList = new ArrayList<>();
-
-        for (MtimeUserT userT : list) {
-            MtimeUserVO mtimeUserVO = new MtimeUserVO();
-            BeanUtils.copyProperties(userT,mtimeUserVO);
-            userVOList.add(mtimeUserVO);
-        }*/
     }
 
     @Override
     public boolean login(String userName, String password) {
 
-        List<MtimeUserVO> list = selectUserByName(userName);
+        List<MtimeUserVO> list = mtimeUserTMapper.selectUserByNameAndPwd(userName, password);
         if (list != null && list.size() > 0) {
             MtimeUserVO mtimeUserVO = list.get(0);
             if (mtimeUserVO.getUserPwd().equals(password)) {

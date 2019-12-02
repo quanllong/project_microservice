@@ -30,7 +30,7 @@ public class GetUserInfoVo implements Serializable {
     
     private String phone;
     
-    private int sex;
+    private Integer sex;
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date updateTime;
