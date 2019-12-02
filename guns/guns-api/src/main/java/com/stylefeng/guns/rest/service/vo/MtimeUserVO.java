@@ -1,6 +1,5 @@
 package com.stylefeng.guns.rest.service.vo;
 import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 

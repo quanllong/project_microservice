@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("order")
 public class OrderController {
 
-    @Reference(interfaceClass = OrderService.class)
+    @Reference(interfaceClass = OrderService.class,check = false)
     OrderService orderService;
 
     @Autowired
