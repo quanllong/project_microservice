@@ -41,7 +41,7 @@ public class AuthController {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    @Reference(interfaceClass = MtimeUserTService.class)
+    @Reference(interfaceClass = MtimeUserTService.class,check = false)
     MtimeUserTService mtimeUserTService;
 
     @RequestMapping(value = "${jwt.auth-path}")

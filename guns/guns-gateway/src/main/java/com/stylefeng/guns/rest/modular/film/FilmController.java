@@ -3,7 +3,7 @@ package com.stylefeng.guns.rest.modular.film;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.BaseReqVo;
 import com.stylefeng.guns.rest.service.FilmService;
-import com.stylefeng.guns.rest.service.vo.*;
+import com.stylefeng.guns.rest.service.vo.filmvo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,6 +43,7 @@ public class FilmController {
             filmIndexVO.setBoxRanking(boxRanking);
             filmIndexVO.setExpectRanking(expectRanking);
             filmIndexVO.setTop100(top100);
+//            int i = 8/0;
         } catch (Exception e) {
             log.info("请求首页异常信息",e);
             return BaseReqVo.fail("首页接口异常");
