@@ -50,7 +50,6 @@ public class BaseResponseVO<T> implements Serializable {
 
     /**
      * 注册失败:用户已存在
-     * @param msg
      * @return
      */
     public static BaseResponseVO registerFail() {
@@ -80,6 +79,13 @@ public class BaseResponseVO<T> implements Serializable {
         BaseResponseVO<Object> objectBaseResponseVO = new BaseResponseVO<>();
         objectBaseResponseVO.setMsg(msg);
         objectBaseResponseVO.setStatus(999);
+        return objectBaseResponseVO;
+    }
+
+    public static BaseResponseVO systemFail(String msg) {
+        BaseResponseVO<Object> objectBaseResponseVO = new BaseResponseVO<>();
+        objectBaseResponseVO.setMsg(msg);
+        objectBaseResponseVO.setStatus(1);
         return objectBaseResponseVO;
     }
 

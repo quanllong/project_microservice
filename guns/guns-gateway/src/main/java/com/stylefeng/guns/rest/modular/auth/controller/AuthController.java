@@ -46,7 +46,9 @@ public class AuthController {
     public BaseResponseVO createAuthenticationToken(AuthRequest authRequest) {
 
         try {
+            //测试异常
             //int i = 1/0;
+
             String userName = authRequest.getUserName();
             String password = authRequest.getPassword();
 
@@ -61,7 +63,7 @@ public class AuthController {
                 List<MtimeUserVO> list = mtimeUserTService.selectUserByName(userName);
                 MtimeUserVO mtimeUserVO = list.get(0);
                 redisTemplate.opsForValue().set(token, mtimeUserVO);
-                redisTemplate.expire(token, 600, TimeUnit.SECONDS);/*有效时间10min*/
+                redisTemplate.expire(token, 86400, TimeUnit.SECONDS);/*有效时间是1天*/
 
                 BaseResponseVO baseResponseVO = new BaseResponseVO();
                 Map<String,Object> data = new HashMap<>();
@@ -78,7 +80,7 @@ public class AuthController {
                 //throw new GunsException(BizExceptionEnum.AUTH_REQUEST_ERROR);
             }
         }catch (Exception e) {
-            return BaseResponseVO.systemError("系统出现异常，请联系管理员");
+            return BaseResponseVO.systemFail("系统出现异常，请联系管理员");
         }
     }
 }

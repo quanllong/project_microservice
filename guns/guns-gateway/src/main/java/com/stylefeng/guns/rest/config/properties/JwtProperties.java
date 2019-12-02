@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = JwtProperties.JWT_PREFIX)
 public class JwtProperties {
 
-    private String ignoreUrl;
+    public String ignoreUrl;
 
     public static final String JWT_PREFIX = "jwt";
 

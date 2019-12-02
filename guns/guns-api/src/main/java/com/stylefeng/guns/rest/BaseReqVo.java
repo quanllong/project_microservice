@@ -1,5 +1,7 @@
 package com.stylefeng.guns.rest;
+
 import lombok.Data;
+
 import java.io.Serializable;
 
 @Data
@@ -11,6 +13,8 @@ public class BaseReqVo<T> implements Serializable {
     Integer totalPage;
     Integer status;
     String imgPre;
+
+
 
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();

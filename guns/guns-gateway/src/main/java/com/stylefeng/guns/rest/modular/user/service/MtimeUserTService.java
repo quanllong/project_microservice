@@ -1,13 +1,12 @@
-package com.stylefeng.guns.rest.service;
-
-
-import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
+package com.stylefeng.guns.rest.modular.user.service;
+import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
+
 import java.util.List;
 
 public interface MtimeUserTService {
 
-    List<MtimeUserVO> selectUserByName(String username);
+    List<MtimeUserT> selectUserByName(String username);
 
     Integer insertUser(RegisterReqVo registerReqVo);
 

@@ -1,6 +1,5 @@
 package com.stylefeng.guns.rest.service.vo.cinemavo;
 
-import com.stylefeng.guns.rest.BaseReqVo;
 import lombok.Data;
 
 import java.io.Serializable;
