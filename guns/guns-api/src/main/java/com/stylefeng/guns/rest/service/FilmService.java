@@ -8,6 +8,8 @@ import java.util.Map;
 
 public interface FilmService {
 
+    FilmVO selectById(Integer id);
+
     Map getHotFilms(FilmRequestVO filmRequestVO);
 
     Map getSoonFilms(FilmRequestVO filmRequestVO);

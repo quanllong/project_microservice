@@ -13,8 +13,8 @@ import java.io.Serializable;
  * 影片主表
  * </p>
  *
- * @author ys
- * @since 2019-11-28
+ * @author quanllong
+ * @since 2019-11-27
  */
 @TableName("mtime_film_t")
 public class MtimeFilmT extends Model<MtimeFilmT> {
@@ -200,19 +200,19 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
     @Override
     public String toString() {
         return "MtimeFilmT{" +
-        "uuid=" + uuid +
-        ", filmName=" + filmName +
-        ", filmType=" + filmType +
-        ", imgAddress=" + imgAddress +
-        ", filmScore=" + filmScore +
-        ", filmPresalenum=" + filmPresalenum +
-        ", filmBoxOffice=" + filmBoxOffice +
-        ", filmSource=" + filmSource +
-        ", filmCats=" + filmCats +
-        ", filmArea=" + filmArea +
-        ", filmDate=" + filmDate +
-        ", filmTime=" + filmTime +
-        ", filmStatus=" + filmStatus +
-        "}";
+                "uuid=" + uuid +
+                ", filmName=" + filmName +
+                ", filmType=" + filmType +
+                ", imgAddress=" + imgAddress +
+                ", filmScore=" + filmScore +
+                ", filmPresalenum=" + filmPresalenum +
+                ", filmBoxOffice=" + filmBoxOffice +
+                ", filmSource=" + filmSource +
+                ", filmCats=" + filmCats +
+                ", filmArea=" + filmArea +
+                ", filmDate=" + filmDate +
+                ", filmTime=" + filmTime +
+                ", filmStatus=" + filmStatus +
+                "}";
     }
 }
