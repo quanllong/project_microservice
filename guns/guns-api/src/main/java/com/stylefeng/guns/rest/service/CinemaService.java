@@ -21,16 +21,15 @@ public interface CinemaService {
 
     List<HallTypeVo> selectHallByBrandType(Integer hallType);
 
-    // 根据影院编号，获取影院信息，quanllong
+    // 供接口3和4使用，cinemaInfo.根据影院编号，获取影院信息，quanllong.被两个接口所共用
     CinemaInfoVO getCinemaInfoById(Integer cinemaId);
 
-    // 获取所有电影的信息和对应的放映场次信息，根据电影编号，quanllong
+    // 供接口3使用，获取所有电影的信息和对应的放映场次信息，根据电影编号，quanllong
     List<FilmInfoVO> getFilmInfoByCinemaId(Integer cinemaId);
 
-    // 根据放映场次id获得放映电影的信息，quanllong
+    // 供接口4使用，filmInfo.根据放映场次id获得放映电影的信息，quanllong
     FilmInfoVO getFilmInfoByFieldId(Integer fieldId);
 
-    // 根据放映场次id获得放映厅的信息
+    // 供接口4使用，hallInfo.根据放映场次id获取放映信息
     HallInfoVO getFilmFieldInfo(Integer fieldId);
-
 }

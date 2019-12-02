@@ -6,8 +6,8 @@ import java.io.Serializable;
 
 @Data
 public class BaseReqVo<T> implements Serializable {
-    private static final long serialVersionUID = 8098787387976159702L;
-    T data;
+    private static final long serialVersionUID = 8019703345977793521L;
+    Object data;    // 这里不用泛型了，用Object。quanllong
     String msg;
     Integer nowPage;
     Integer totalPage;

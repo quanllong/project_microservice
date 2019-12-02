@@ -166,8 +166,9 @@ public class CinemaServiceImpl implements CinemaService {
 
 
     /**
+     * 根据影院id返回该影院信息
      * @param cinemaId
-     * @return 根据影院id返回该影院信息
+     * @return
      */
     @Override
     public CinemaInfoVO getCinemaInfoById(Integer cinemaId) {
@@ -183,8 +184,9 @@ public class CinemaServiceImpl implements CinemaService {
     }
 
     /**
+     * 根据cinemaId取得该影院上映的电影信息
      * @param cinemaId
-     * @return 根据cinemaId取得该影院上映的电影信息
+     * @return
      */
     @Override
     public List<FilmInfoVO> getFilmInfoByCinemaId(Integer cinemaId) {
@@ -219,19 +221,24 @@ public class CinemaServiceImpl implements CinemaService {
 
     // 根据和影院id以及电影id查询该影院中某部电影的场次信息,并封装成一个list
     private List<FilmFieldVO> getFilmfieldsByFilmId(Integer cinemaId,String filmId){
-        EntityWrapper<MtimeFieldT> mtimeFieldTEntityWrapper = new EntityWrapper<>();
-        HashMap<String, Object> params = new HashMap<>();
+        EntityWrapper<MtimeFieldT> wrapper = new EntityWrapper<>();
+        /*HashMap<String, Object> params = new HashMap<>();
         params.put("cinema_id",cinemaId);
         params.put("film_id",filmId);
-        mtimeFieldTEntityWrapper.allEq(params);
-        List<MtimeFieldT> mtimeFieldTS = mtimeFieldTMapper.selectList(mtimeFieldTEntityWrapper);
+        mtimeFieldTEntityWrapper.allEq(params);*/
+        wrapper.eq("cinema_id",cinemaId).eq("film_id",filmId);
+        List<MtimeFieldT> mtimeFieldTS = mtimeFieldTMapper.selectList(wrapper);
 
         ArrayList<FilmFieldVO> filmFieldVOArrayList = new ArrayList<>();
         for (MtimeFieldT mtimeFieldT : mtimeFieldTS) {
+            // 将值赋给前端的bean
             FilmFieldVO filmFieldVO = new FilmFieldVO();
             filmFieldVO.setBeginTime(mtimeFieldT.getBeginTime());
             filmFieldVO.setEndTime(mtimeFieldT.getEndTime());
-            filmFieldVO.setFieldId(String.valueOf(mtimeFieldT.getHallId())); //放映厅的编号
+
+            // field表的最左侧UUID
+            // filmFieldVO.setFieldId(String.valueOf(mtimeFieldT.getHallId())); //放映厅的编号
+            filmFieldVO.setFieldId(String.valueOf(mtimeFieldT.getUuid())); // field表的最左侧id
             filmFieldVO.setHallName(mtimeFieldT.getHallName());
             // 查language
             /*EntityWrapper<MtimeHallFilmInfoT> hallFilmInfoTEntityWrapper = new EntityWrapper<>();

@@ -43,6 +43,7 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
+        <!--公共api-->
         <dependency>
             <groupId>com.stylefeng.guns</groupId>
             <artifactId>guns-api</artifactId>
