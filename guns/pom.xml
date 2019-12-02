@@ -19,6 +19,7 @@
         <module>guns-api</module>
         <module>guns-gateway</module>
         <module>guns-order-ys</module>
+        <module>guns-order</module>
     </modules>
 
     <parent>
@@ -170,6 +171,11 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.10</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

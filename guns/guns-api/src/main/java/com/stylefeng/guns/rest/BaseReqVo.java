@@ -1,5 +1,7 @@
 package com.stylefeng.guns.rest;
+
 import lombok.Data;
+
 import java.io.Serializable;
 
 @Data
@@ -7,8 +9,12 @@ public class BaseReqVo<T> implements Serializable {
     private static final long serialVersionUID = 8098787387976159702L;
     T data;
     String msg;
+    Integer nowPage;
+    Integer totalPage;
     Integer status;
     String imgPre;
+
+
 
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();

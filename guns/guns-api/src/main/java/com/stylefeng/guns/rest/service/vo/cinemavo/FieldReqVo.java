@@ -1,6 +1,5 @@
 package com.stylefeng.guns.rest.service.vo.cinemavo;
 
-import com.stylefeng.guns.rest.BaseReqVo;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,6 +10,7 @@ import java.io.Serializable;
  */
 @Data
 public class FieldReqVo implements Serializable {
+    private static final long serialVersionUID = -6111649945260539344L;
     String imgPre = "http://img.meetingshop.cn";    // 写固定的
     String msg = "";
     String nowPage = "";

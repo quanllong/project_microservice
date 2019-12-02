@@ -14,5 +14,4 @@
         <result column="director_id" property="directorId" />
         <result column="film_imgs" property="filmImgs" />
     </resultMap>
-
 </mapper>

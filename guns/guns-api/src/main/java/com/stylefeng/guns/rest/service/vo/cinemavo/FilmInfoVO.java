@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 public class FilmInfoVO implements Serializable {
+    private static final long serialVersionUID = -4339768462969660445L;
     private String filmId;
     private String filmName;
     private String filmLength;
@@ -14,5 +15,5 @@ public class FilmInfoVO implements Serializable {
     private String filmCats;
     private String actors;
     private String imgAddress;
-    private List<FilmFieldVO> fileFields;
+    private List<FilmFieldVO> filmFields;
 }
