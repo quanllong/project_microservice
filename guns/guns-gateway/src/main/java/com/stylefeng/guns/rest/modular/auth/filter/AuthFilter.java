@@ -5,6 +5,7 @@ import com.stylefeng.guns.core.util.RenderUtil;
 import com.stylefeng.guns.rest.common.exception.BizExceptionEnum;
 import com.stylefeng.guns.rest.config.properties.JwtProperties;
 import com.stylefeng.guns.rest.modular.auth.util.JwtTokenUtil;
+import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import io.jsonwebtoken.JwtException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,29 +51,37 @@ public class AuthFilter extends OncePerRequestFilter {
             }
         }
 
-//        if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
-//        if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
+        /*if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
+        if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
+            chain.doFilter(request, response);
+            return;
+        }*/
 
+        /*拦截url:需要验证token*/
         final String requestHeader = request.getHeader(jwtProperties.getHeader());
         String authToken = null;
         if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
             authToken = requestHeader.substring(7);
             try {
-                Object token = redisTemplate.opsForValue().get(authToken);
-                if (token == null) {
+                Object o =  redisTemplate.opsForValue().get(authToken);
+                if (o == null) {
+                    /*token过期*/
                     RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_EXPIRED.getCode(), BizExceptionEnum.TOKEN_EXPIRED.getMessage()));
                     return;
                 }
+                /*通过token验证*/
+                chain.doFilter(request, response);
+                return;
+
             }catch (Exception e) {
                 //有异常就是token解析失败
-                RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_ERROR.getMessage()));
+                /*服务器异常*/
+                RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.SYSTEM_ERROR.getMessage()));
                 return;
             }
         }else {
             //header没有带Bearer字段
+            /*其实是不会进入这条语句的*/
             RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_ERROR.getMessage()));
             return;
         }
