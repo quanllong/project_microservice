@@ -15,7 +15,6 @@ public enum BizExceptionEnum implements ServiceExceptionEnum {
      */
     TOKEN_EXPIRED(700, "token过期"),
     TOKEN_ERROR(700, "token验证失败"),
-
     /**
      * 签名异常
      */
@@ -24,7 +23,10 @@ public enum BizExceptionEnum implements ServiceExceptionEnum {
     /**
      * 其他
      */
-    AUTH_REQUEST_ERROR(400, "账号密码错误");
+    AUTH_REQUEST_ERROR(400, "账号密码错误"),
+    SYSTEM_ERROR(1,"服务器异常");
+
+
 
     BizExceptionEnum(int code, String message) {
         this.code = code;
