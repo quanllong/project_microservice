@@ -1,6 +1,7 @@
 package com.stylefeng.guns.rest.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.google.gson.Gson;
@@ -13,6 +14,7 @@ import com.stylefeng.guns.rest.service.vo.cinemavo.HallInfoVO;
 import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -36,6 +38,10 @@ public class OrderServiceImpl implements OrderService {
     MtimeFilmTMapper mtimeFilmTMapper;
     @Autowired
     MtimeCinemaTMapper mtimeCinemaTMapper;
+    @Autowired
+    RedisTemplate redisTemplate;
+    @Autowired
+    Gson gson;
 
     /**
      * 这是用来测试项目有没有跑通的，与本项目关系不大
@@ -87,7 +93,13 @@ public class OrderServiceImpl implements OrderService {
             seatAddress = "imax.json";
         }
 
-        // 怎么读json文件
+        // 尝试取出座位表对象，如果取出的对象为空，则说明reids还没有
+        Seats seatsInRedis = (Seats) redisTemplate.opsForValue().get("seatAddress");
+        if(seatsInRedis != null){
+            return seatsInRedis;
+        }
+
+        // 读座位表
         // InputStream stream = this.getClass().getClassLoader().getResourceAsStream("seats.123214.json");
         ClassPathResource classPathResource = new ClassPathResource(seatAddress);
         String jsonStr = null;
@@ -106,8 +118,10 @@ public class OrderServiceImpl implements OrderService {
         if(jsonStr == null){
             return null;
         }
-        Gson gson = new Gson();
+        // 转成对象
         Seats seats = gson.fromJson(jsonStr, Seats.class);
+        // 存入座位表对象
+        redisTemplate.opsForValue().set(seatAddress,seats);
         return seats;
     }
 
