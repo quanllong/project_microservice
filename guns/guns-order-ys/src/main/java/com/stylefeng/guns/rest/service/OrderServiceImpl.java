@@ -126,14 +126,16 @@ public class OrderServiceImpl implements OrderServiceYs {
         double totalPrice = filmPrice * solds;
         MoocOrderT moocOrderT = new MoocOrderT();
         moocOrderT.setUuid(uuid);
+        moocOrderT.setCinemaId(cinemaId);
+        moocOrderT.setFieldId(fieldId);
+        moocOrderT.setFilmId(mtimeFieldT.getFilmId());
         moocOrderT.setSeatsIds(soldSeats);
         moocOrderT.setSeatsName(seatsName);
-        moocOrderT.setOrderUser(userId);
         moocOrderT.setFilmPrice(filmPrice);
         moocOrderT.setOrderPrice(totalPrice);
-        moocOrderT.setFieldId(fieldId);
-        moocOrderT.setCinemaId(cinemaId);
         moocOrderT.setOrderTime(new Date());
+        moocOrderT.setOrderUser(userId);
+        moocOrderT.setOrderStatus(0);
         //将订单信息插入订单表中，生成一个订单
         Integer insert = orderTMapper.insert(moocOrderT);
         if (insert > 0){
