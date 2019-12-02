@@ -15,26 +15,6 @@ import java.util.List;
 @SpringBootTest(classes = GunsOrderApplication.class)
 public class SeatTest {
 
-    @Autowired
-    MoocOrderTMapper moocOrderTMapper;
+    // 这个测试方法可以全部删掉，quanllong
 
-    @Test
-    public void test1(){
-        int fieldId = 7;
-        // 座位是否已经售出
-        String[] seatId = {"2","4","7"};//放映场次为1，假设我要下单这个座位，如果判断出已经售出就成功
-        List<MoocOrderT> fields = moocOrderTMapper.selectList(new EntityWrapper<MoocOrderT>().eq("field_id", fieldId));
-        StringBuilder builder = new StringBuilder();
-        for (MoocOrderT field : fields) {
-            builder.append(field.getSeatsIds()).append(",");
-        }
-        String soldSeats = builder.toString();
-        for (String s : seatId) {
-            if(soldSeats.contains(s)){
-                System.out.println(1);
-            }
-        }
-        System.out.println(0);
-                System.out.println("座位已经售出");
-    }
 }
