@@ -5,6 +5,7 @@ import com.stylefeng.guns.core.util.RenderUtil;
 import com.stylefeng.guns.rest.common.exception.BizExceptionEnum;
 import com.stylefeng.guns.rest.config.properties.JwtProperties;
 import com.stylefeng.guns.rest.modular.auth.util.JwtTokenUtil;
+import io.jsonwebtoken.JwtException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +50,12 @@ public class AuthFilter extends OncePerRequestFilter {
             }
         }
 
-        /*if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
-            chain.doFilter(request, response);
-            return;
-        }*/
+//        if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
+//        if (request.getServletPath().equals("/" + jwtProperties.getAuthPath())) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
+
         final String requestHeader = request.getHeader(jwtProperties.getHeader());
         String authToken = null;
         if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
@@ -68,35 +71,10 @@ public class AuthFilter extends OncePerRequestFilter {
                 RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_ERROR.getMessage()));
                 return;
             }
-        }
-
-       /* final String requestHeader = request.getHeader(jwtProperties.getHeader());
-        String authToken = null;
-        if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
-            authToken = requestHeader.substring(7);
-
-            //验证token是否过期,包含了验证jwt是否正确
-            try {
-                Object token = redisTemplate.opsForValue().get(authToken);
-                if (token == null) {
-                    RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_EXPIRED.getCode(), BizExceptionEnum.TOKEN_EXPIRED.getMessage()));
-                    return;
-                }
-                boolean flag = jwtTokenUtil.isTokenExpired(authToken);
-                if (flag) {
-                    RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_EXPIRED.getCode(), BizExceptionEnum.TOKEN_EXPIRED.getMessage()));
-                    return;
-                }
-            } catch (JwtException e) {
-                //有异常就是token解析失败
-                RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_ERROR.getMessage()));
-                return;
-            }
-        } else {
+        }else {
             //header没有带Bearer字段
             RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_ERROR.getCode(), BizExceptionEnum.TOKEN_ERROR.getMessage()));
             return;
         }
-        chain.doFilter(request, response);*/
     }
 }

@@ -19,4 +19,6 @@ import java.util.List;
 public interface MtimeUserTMapper extends BaseMapper<MtimeUserT> {
 
     List<MtimeUserVO> selectByUserName(@Param("name") String username);
+
+    List<MtimeUserVO> selectUserByNameAndPwd(@Param("username") String userName, @Param("pwd") String password);
 }

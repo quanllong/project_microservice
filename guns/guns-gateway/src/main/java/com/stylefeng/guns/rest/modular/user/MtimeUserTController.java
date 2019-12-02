@@ -6,7 +6,6 @@ import com.stylefeng.guns.rest.service.MtimeUserTService;
 import com.stylefeng.guns.rest.service.vo.BaseResponseVO;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -108,10 +107,13 @@ HttpServletRequest request2;*/
             //制造异常
             //int i = 1/0;
             String authorization = request.getHeader("Authorization");
-
             if (authorization == null) {
                 return BaseResponseVO.fail("前端未传入Authorization");
             }
+            if (authorization != null && !authorization.startsWith("Bearer ")) {
+                return BaseResponseVO.fail("该Authorization无效");
+            }
+
             String token = authorization.substring(7);
             MtimeUserVO o = (MtimeUserVO) redisTemplate.opsForValue().get(token);
             /*String userName = o.getUserName();*/

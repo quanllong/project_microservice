@@ -3,7 +3,6 @@ package com.stylefeng.guns.rest.service;
 
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
-
 import java.util.List;
 
 public interface MtimeUserTService {

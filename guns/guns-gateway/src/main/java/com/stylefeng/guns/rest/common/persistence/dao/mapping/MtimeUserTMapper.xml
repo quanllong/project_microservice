@@ -47,4 +47,15 @@
         `begin_time`,`update_time`
         from `mtime_user_t` where `user_name` = #{name,jdbcType=VARCHAR}
     </select>
+
+    <select id="selectUserByNameAndPwd" resultMap="myresutmap">
+        select `UUID`,`user_name`,
+        `user_pwd`,`nick_name` ,
+        `user_sex`,`birthday`,
+        `email`,`user_phone`,
+        `address`,`head_url`,
+        `biography`,`life_state`,
+        `begin_time`,`update_time`
+        from `mtime_user_t` where `user_name` = #{username,jdbcType=VARCHAR} and `user_pwd` = #{pwd,jdbcType=VARCHAR}
+    </select>
 </mapper>

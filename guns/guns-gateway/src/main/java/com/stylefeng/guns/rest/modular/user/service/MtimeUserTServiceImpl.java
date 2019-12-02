@@ -49,7 +49,7 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
     @Override
     public boolean login(String userName, String password) {
 
-        List<MtimeUserVO> list = selectUserByName(userName);
+        List<MtimeUserVO> list = mtimeUserTMapper.selectUserByNameAndPwd(userName,password);
         if (list != null && list.size() > 0) {
             MtimeUserVO mtimeUserVO = list.get(0);
             if (mtimeUserVO.getUserPwd().equals(password)) {
@@ -58,6 +58,8 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
         }
         return false;
     }
+
+
 
 
     @Override
