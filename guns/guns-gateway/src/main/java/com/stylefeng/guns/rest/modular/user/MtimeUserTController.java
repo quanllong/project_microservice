@@ -9,7 +9,6 @@ import com.stylefeng.guns.rest.service.vo.*;
 import com.stylefeng.guns.rest.service.vo.BaseResponseVO;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -51,7 +49,7 @@ public class MtimeUserTController {
     public BaseResponseVO register(RegisterReqVo registerReqVo) {
         try {
             //制造异常
-            //int i = 1/0;
+            //int i = 1/0;<<
 
             /*数据校验*/
             String username = registerReqVo.getUsername();

@@ -1,8 +1,8 @@
 package com.stylefeng.guns.rest.modular.cinema;
 
+
+
 import com.alibaba.dubbo.config.annotation.Reference;
-
-
 import com.stylefeng.guns.rest.BaseReqVo;
 import com.stylefeng.guns.rest.service.CinemaService;
 import com.stylefeng.guns.rest.service.vo.CinemaVO;
