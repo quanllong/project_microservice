@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
         }
         // 用户可能选中多个座位，只要有一个座位不是当前影厅的座位，就返回false
         String ids = seats.getIds();
-        List<String> list = Arrays.asList(ids.split(", "));
+        List<String> list = Arrays.asList(ids.split(","));
         for (String id: seatId){
             if(! list.contains(id)){
                 return false;

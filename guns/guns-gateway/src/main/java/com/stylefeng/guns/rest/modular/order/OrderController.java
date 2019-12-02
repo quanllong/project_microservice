@@ -3,6 +3,7 @@ package com.stylefeng.guns.rest.modular.order;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.stylefeng.guns.rest.BaseReqVo;
 import com.stylefeng.guns.rest.service.OrderService;
+import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.OrderTestVO;
 import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -34,7 +36,14 @@ public class OrderController {
     Request Method: POST
      */
     @RequestMapping("buyTickets")
-    public BaseReqVo buyTicket(String fieldId,String[] soldSeats,String seatsName){
+    public BaseReqVo buyTicket(String fieldId, String[] soldSeats, String seatsName, HttpServletRequest request){
+        // 验证有没有登录
+        String token = request.getHeader("Authorization").substring(7);
+        MtimeUserVO user = (MtimeUserVO) redisTemplate.opsForValue().get(token);
+        if(user == null){
+            return BaseReqVo.fail("请先登录");
+        }
+
         Boolean trueSeats = orderService.isTrueSeats(fieldId, soldSeats);
         if(!trueSeats){
             return BaseReqVo.fail("座位不存在");
@@ -44,7 +53,8 @@ public class OrderController {
             return BaseReqVo.fail("座位已经售出");    // 没有显示具体哪个座位被售出
         }
 
-        int userId = 1; // 暂时写成固定值，等token验证写成之后，这里要用RedisTemplate取出。
+        Integer userId = user.getUuid();
+        // int userId = 1; // 暂时写成固定值，等token验证写成之后，这里要用RedisTemplate取出。
         // redisTemplate.opsForValue().get() 怎么取出用户信息，这是个问题
         OrderVO orderVO = orderService.saveOrderInfo(fieldId, soldSeats, seatsName, userId);
         if (orderVO != null ){
