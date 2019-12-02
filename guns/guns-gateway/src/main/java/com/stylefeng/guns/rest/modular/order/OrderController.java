@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("order")
 public class OrderController {
@@ -49,5 +51,21 @@ public class OrderController {
             return BaseReqVo.ok(orderVO);
         }
         return BaseReqVo.fail("系统出现异常，请联系管理员");
+    }
+
+    /*
+     /order/getOrderInfo
+     查询用户订单
+     */
+    @RequestMapping("getOrderInfo")
+    public BaseReqVo getOrderInfo(String nowPage,String pageSize){
+        int userId = 1;
+        List<OrderVO> orders = orderService.getOrderByUserId(nowPage,pageSize,userId);
+        if(orders != null){
+            return BaseReqVo.ok(orders);        // orderStatus传回来是空字符串，还要转为已关闭，已完成状态
+        }
+        BaseReqVo fail = BaseReqVo.fail("订单列表为空哦！~");
+        fail.setStatus(1);
+        return fail;
     }
 }

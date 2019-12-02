@@ -2,6 +2,7 @@ package com.stylefeng.guns.rest.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.google.gson.Gson;
 import com.stylefeng.guns.rest.common.persistence.dao.*;
 import com.stylefeng.guns.rest.common.persistence.model.*;
@@ -12,14 +13,13 @@ import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Service(interfaceClass = OrderService.class)
@@ -144,8 +144,11 @@ public class OrderServiceImpl implements OrderService {
         String seats = getSeatNamesBySeatIds(fieldId,seatId);
         moocOrderT.setSeatsName(seats);
 
-        moocOrderT.setFilmPrice(Double.valueOf(mtimeFieldT.getPrice()));    // 票单价
+        // 票单价
+        moocOrderT.setFilmPrice(Double.valueOf(mtimeFieldT.getPrice()));
+        // 计算总价
         moocOrderT.setOrderPrice(orderPrice(seatId, Integer.valueOf(fieldId)));
+
         moocOrderT.setOrderTime(new Date());
         moocOrderT.setOrderUser(userId);
         moocOrderT.setOrderStatus(0);   // 默认是0，表示未支付
@@ -233,19 +236,49 @@ public class OrderServiceImpl implements OrderService {
      * @return 返回订单总价
      */
     private Double orderPrice(String[] seatIds,Integer fieldId){
+        // 取出座位表，最好把座位表存进内存或者以组件的方式存进容器1
         Seats seats = seatsFromJsonFile(fieldId);
-        // 取得最后一个单人座的id
+
+        /*// 取得最后一个单人座的id
         List<List<Seats.SingleBean>> singleList = seats.getSingle();
         List<Seats.SingleBean> singleBeans = singleList.get(singleList.size() - 1);
         int lastSingleSeatId = singleBeans.get(singleBeans.size() - 1).getSeatId();
-        // id小于lastSingleSeatId的座位的价格是60，大于lastSingleSeatId的作为是情侣座，每个120
+        // id小于lastSingleSeatId的座位的价格是60，大于lastSingleSeatId的作为是情侣座，每个120*/
+
+        // 即使选一个情侣座，也会传两个座位id进来
         Integer unitPrice = mtimeFieldTMapper.selectById(fieldId).getPrice(); // 取出该放映场次的单人票价
         double totalPrice = 0;
-        for (String seatId : seatIds) {
+        /*for (String seatId : seatIds) {
             double price = Integer.valueOf(seatId) <= lastSingleSeatId ? unitPrice : unitPrice * 2;
             totalPrice += price;
-        }
+        }*/
+        totalPrice = unitPrice * seatIds.length;        // 单价乘以座位个数
         return totalPrice;
     }
 
+    @Override
+    public List<OrderVO> getOrderByUserId(String nowPage, String pageSize, int userId) {
+        // nowPage当前页，默认第一页。pageSize每页多少条，默认5条
+        if (StringUtils.isEmpty(nowPage)){
+            nowPage = "1";
+        }
+        if (StringUtils.isEmpty(pageSize)){
+            pageSize = "5";
+        }
+        Page<MoocOrderT> tPage = new Page<>(Integer.valueOf(nowPage), Integer.valueOf(pageSize));
+        EntityWrapper<MoocOrderT> wrapper = new EntityWrapper<>();
+        wrapper.eq("order_user",userId);
+
+        // 取出order信息
+        List<MoocOrderT> moocOrderTS = moocOrderTMapper.selectPage(tPage, wrapper);
+        if(CollectionUtils.isEmpty(moocOrderTS)){
+            return null;
+        }
+        ArrayList<OrderVO> orderList = new ArrayList<>();
+        for (MoocOrderT moocOrderT : moocOrderTS) {
+            OrderVO orderVO = moocOrderT2orderVO(moocOrderT);
+            orderList.add(orderVO);
+        }
+        return orderList;
+    }
 }

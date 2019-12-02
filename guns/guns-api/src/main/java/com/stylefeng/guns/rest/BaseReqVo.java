@@ -1,16 +1,20 @@
 package com.stylefeng.guns.rest;
+
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class BaseReqVo<T> {
+public class BaseReqVo<T> implements Serializable {
+    private static final long serialVersionUID = 8098787387976159702L;
     T data;
     String msg;
-    Integer status;
-    //ys
-    String imgPre;
-    //cuigx
     Integer nowPage;
     Integer totalPage;
+    Integer status;
+    String imgPre;
+
+
 
     public static BaseReqVo ok(){
         BaseReqVo baseReqVo = new BaseReqVo();
@@ -26,7 +30,7 @@ public class BaseReqVo<T> {
     public static BaseReqVo fail(){
         BaseReqVo baseReqVo = new BaseReqVo();
         baseReqVo.setMsg("失败");
-        baseReqVo.setStatus(999);
+        baseReqVo.setStatus(500);
         return baseReqVo;
     }
     // quanllong
@@ -35,8 +39,8 @@ public class BaseReqVo<T> {
         baseReqVo.setMsg((String) msg);
         return baseReqVo;
     }
-    //ys
-    public static BaseReqVo ok(Object data, String imgPre){
+
+    public static BaseReqVo ok(Object data,String imgPre){
         BaseReqVo baseReqVo = BaseReqVo.ok();
         baseReqVo.setData(data);
         baseReqVo.setImgPre(imgPre);

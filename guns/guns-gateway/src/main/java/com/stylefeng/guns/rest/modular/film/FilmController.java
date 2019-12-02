@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 @Slf4j
 @RequestMapping("film")
@@ -21,7 +22,7 @@ public class FilmController {
     private String imgPre = "http://img.meetingshop.cn/";
 
     @Reference(interfaceClass = FilmService.class,check = false)
-    private FilmService filmService;
+    FilmService filmService;
 
     /**
      * get请求
@@ -75,13 +76,6 @@ public class FilmController {
             return BaseReqVo.fail("影片接口异常");
         }
         return BaseReqVo.ok(filmConditionVO);
-    }
-
-
-    @RequestMapping("film/query")
-    public FilmVO query(Integer id){
-        FilmVO filmVO = filmService.selectById(id);
-        return filmVO;
     }
 
     @RequestMapping(value = "getFilms")

@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = JwtProperties.JWT_PREFIX)
 public class JwtProperties {
 
+    private String ignoreUrl;
+
     public static final String JWT_PREFIX = "jwt";
 
     private String header = "Authorization";
@@ -67,5 +69,13 @@ public class JwtProperties {
 
     public void setMd5Key(String md5Key) {
         this.md5Key = md5Key;
+    }
+
+    public String getIgnoreUrl() {
+        return ignoreUrl;
+    }
+
+    public void setIgnoreUrl(String ignoreUrl) {
+        this.ignoreUrl = ignoreUrl;
     }
 }
