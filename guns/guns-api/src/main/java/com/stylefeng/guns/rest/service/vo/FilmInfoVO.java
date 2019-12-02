@@ -31,4 +31,6 @@ public class  FilmInfoVO implements Serializable {
     private Date showTime;
 
     private Integer boxNum;
+
+    private String filmImgs;
 }
