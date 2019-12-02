@@ -9,6 +9,7 @@ import com.stylefeng.guns.rest.common.persistence.model.*;
 import com.stylefeng.guns.rest.service.OrderService;
 import com.stylefeng.guns.rest.service.bena.Seats;
 import com.stylefeng.guns.rest.service.vo.OrderTestVO;
+import com.stylefeng.guns.rest.service.vo.cinemavo.HallInfoVO;
 import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -37,9 +38,9 @@ public class OrderServiceImpl implements OrderService {
     MtimeCinemaTMapper mtimeCinemaTMapper;
 
     /**
+     * 这是用来测试项目有没有跑通的，与本项目关系不大
      * @param id
      * @return
-     * 这是用来测试项目有没有跑通的，与本项目关系不大
      */
     @Override
     public OrderTestVO queryById(Integer id) {
@@ -56,6 +57,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Boolean isTrueSeats(String fieldId, String[] seatId) {
         Seats seats = seatsFromJsonFile(Integer.valueOf(fieldId));    // seats/123214.json
+        if (seats == null){
+            return false;
+        }
         // 用户可能选中多个座位，只要有一个座位不是当前影厅的座位，就返回false
         String ids = seats.getIds();
         for (String id: seatId){
@@ -66,20 +70,26 @@ public class OrderServiceImpl implements OrderService {
         return true;
     }
 
-
     /**
+     * 读json文件，获得这个影厅的座位表
      * @param fieldId
      * @return 返回座位表对象
-     * 根据传入的放映场次fieldid，获得这个影厅的座位表
      */
     private Seats seatsFromJsonFile(Integer fieldId){
         EntityWrapper<MtimeFieldT> wrapper = new EntityWrapper<>();
         wrapper.eq("field_id",fieldId);
         MtimeFieldT mtimeFieldT = mtimeFieldTMapper.selectById(fieldId);
         MtimeHallDictT mtimeHallDictT = mtimeHallDictTMapper.selectById(mtimeFieldT.getHallId());
+
+        // 如果是全部，则默认是imax厅
+        String seatAddress = mtimeHallDictT.getSeatAddress();
+        if (seatAddress == null){
+            seatAddress = "imax.json";
+        }
+
         // 怎么读json文件
         // InputStream stream = this.getClass().getClassLoader().getResourceAsStream("seats.123214.json");
-        ClassPathResource classPathResource = new ClassPathResource(mtimeHallDictT.getSeatAddress());
+        ClassPathResource classPathResource = new ClassPathResource(seatAddress);
         String jsonStr = null;
         try {
             InputStream inputStream = classPathResource.getInputStream();
@@ -93,24 +103,25 @@ public class OrderServiceImpl implements OrderService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if(jsonStr == null){
+            return null;
+        }
         Gson gson = new Gson();
         Seats seats = gson.fromJson(jsonStr, Seats.class);
         return seats;
     }
 
     /**
+     * 判断座位是否售出
      * @param fieldId 放映场次id
      * @param seatId 座位id
      * @return 座位如果被售出，返回true
      */
     @Override
     public Boolean isSoldSeats(String fieldId, String[] seatId) {
-        List<MoocOrderT> fields = moocOrderTMapper.selectList(new EntityWrapper<MoocOrderT>().eq("field_id", fieldId));
-        StringBuilder builder = new StringBuilder();
-        for (MoocOrderT field : fields) {
-            builder.append(field.getSeatsIds()).append(",");
-        }
-        String soldSeats = builder.toString();
+        // 调用方法获取售出座位
+        String soldSeats = getSoldSeatsByFieldId(fieldId);
+        // 判断座位是否已售出
         for (String s : seatId) {
             if(soldSeats.contains(s)){
                 return true;
@@ -120,13 +131,32 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 获取已经售出的座位编号
+     * 供电影模块的接口4方法2，以及订单模块的接口1方法1和2调用
+     * quanllong
+     * @param fieldId
+     * @return
+     */
+    private String getSoldSeatsByFieldId(String fieldId){
+        // 获得订单信息
+        List<MoocOrderT> fields = moocOrderTMapper.selectList(new EntityWrapper<MoocOrderT>().eq("field_id", fieldId));
+        // 统计已售出的座位
+        StringBuilder builder = new StringBuilder();
+        for (MoocOrderT field : fields) {
+            builder.append(field.getSeatsIds()).append(",");
+        }
+        String s = builder.toString();
+        return s.substring(0,s.length() -1);
+    }
+
+    /**
+     *  创建订单
      * quanllong
      * @param fieldId
      * @param seatId
      * @param seatsName
      * @param userId
      * @return
-     * 创建订单
      */
     @Override
     public OrderVO saveOrderInfo(String fieldId, String[] seatId, String seatsName, Integer userId) {
@@ -163,11 +193,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 取出座位的位置
+     * 第一排1座,第一排2座,第一排3座,第一排4座
      * quanllong
      * @param seatId
      * @return
-     * 根据座位id取出座位的位置
-     * 第一排1座,第一排2座,第一排3座,第一排4座
      */
     private String getSeatNamesBySeatIds(String fieldId,String[] seatId) {
         Seats seats = seatsFromJsonFile(Integer.valueOf(fieldId));
@@ -206,10 +236,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 将数据库order的bean转为前端bean
      * quanllong
      * @param moocOrderT 数据库order表对应的bean
      * @return 返回给前端的OrderVO
-     * 将数据库bean转为前端bean
      */
     private OrderVO moocOrderT2orderVO(MoocOrderT moocOrderT) {
         OrderVO orderVO = new OrderVO();
@@ -231,6 +261,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 计算订单总价
      * @param seatIds 作为编号
      * @param fieldId 放映场次
      * @return 返回订单总价
@@ -280,5 +311,32 @@ public class OrderServiceImpl implements OrderService {
             orderList.add(orderVO);
         }
         return orderList;
+    }
+
+    /**
+     * 获取放映信息
+     * 供影院模块接口4的方法2调用
+     * quanllong
+     * @param fieldId
+     * @return
+     */
+    @Override
+    public HallInfoVO getFilmFieldInfo(Integer fieldId) {
+        // 获取场次
+        MtimeFieldT mtimeFieldT = mtimeFieldTMapper.selectById(fieldId);
+
+        HallInfoVO hallInfoVO = new HallInfoVO();
+        hallInfoVO.setDiscountPrice("");
+        hallInfoVO.setHallFieldId(fieldId);
+        hallInfoVO.setHallName(mtimeFieldT.getHallName());
+        hallInfoVO.setPrice(String.valueOf(mtimeFieldT.getPrice()));
+
+        // 获取影厅
+        MtimeHallDictT mtimeHallDictT = mtimeHallDictTMapper.selectById(mtimeFieldT.getHallId());
+        // 影厅的座位表
+        hallInfoVO.setSeatFile(mtimeHallDictT.getSeatAddress()); // mtime_hall_dict_t
+        // 影厅的已售座位
+        hallInfoVO.setSoldSeats(getSoldSeatsByFieldId(String.valueOf(fieldId)));
+        return hallInfoVO;
     }
 }
