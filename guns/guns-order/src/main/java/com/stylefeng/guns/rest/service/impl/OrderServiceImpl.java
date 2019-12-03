@@ -368,4 +368,10 @@ public class OrderServiceImpl implements OrderService {
         hallInfoVO.setSoldSeats(getSoldSeatsByFieldId(String.valueOf(fieldId)));
         return hallInfoVO;
     }
+
+    @Override
+    public int updateOrderStatus(String orderId, int status) {
+        int update = moocOrderTMapper.updateStatusByUuid(orderId,status);
+        return update;
+    }
 }

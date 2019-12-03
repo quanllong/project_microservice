@@ -4,4 +4,6 @@ import com.stylefeng.guns.rest.service.vo.payvo.PayInfo;
 
 public interface PayService {
     PayInfo getQRCodeAddress(String orderId);
+
+    boolean check(String orderId);
 }

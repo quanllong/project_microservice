@@ -21,4 +21,6 @@ public interface OrderService {
 
     // 供影院模块的接口4的方法2使用
     HallInfoVO getFilmFieldInfo(Integer cameraId,Integer fieldId);
+
+    int updateOrderStatus(String orderId, int status);
 }
