@@ -18,6 +18,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 对客户端请求的jwt token验证过滤器
@@ -69,6 +70,11 @@ public class AuthFilter extends OncePerRequestFilter {
                     RenderUtil.renderJson(response, new ErrorTip(BizExceptionEnum.TOKEN_EXPIRED.getCode(), BizExceptionEnum.TOKEN_EXPIRED.getMessage()));
                     return;
                 }
+               //刷新并通过
+                /*刷新token的时间*/
+                //int tempTime = redisTemplate.getExpire(authToken).intValue();
+                redisTemplate.expire(authToken, 86400, TimeUnit.SECONDS);
+
                 /*通过token验证*/
                 chain.doFilter(request, response);
                 return;

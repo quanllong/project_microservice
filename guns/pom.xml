@@ -19,7 +19,7 @@
         <module>guns-api</module>
         <module>guns-gateway</module>
         <module>guns-order</module>
-        <module>paydemo</module>
+        <module>paybywuqq</module>
     </modules>
 
     <parent>

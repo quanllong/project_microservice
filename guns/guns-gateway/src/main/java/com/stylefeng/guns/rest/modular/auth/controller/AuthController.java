@@ -62,7 +62,7 @@ public class AuthController {
                 final String token = jwtTokenUtil.generateToken(authRequest.getUserName(), randomKey);
 
                 /*把用户信息返回回来*/
-                List<MtimeUserVO> list = mtimeUserTService.selectUserByName(userName);
+                List<MtimeUserVO> list = mtimeUserTService.selectUserAndPwd(userName,password);
                 MtimeUserVO mtimeUserVO = list.get(0);
                 redisTemplate.opsForValue().set(token, mtimeUserVO);
                 redisTemplate.expire(token, 86400, TimeUnit.SECONDS);/*有效时间是1天*/

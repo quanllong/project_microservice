@@ -16,4 +16,6 @@ public interface MtimeUserTService {
     GetUserInfoVo getMtimeUserVO(String token);
 
     GetUserInfoVo userMessModify(GetUserInfoVo userInfoVo);
+
+    List<MtimeUserVO> selectUserAndPwd(String userName, String password);
 }
