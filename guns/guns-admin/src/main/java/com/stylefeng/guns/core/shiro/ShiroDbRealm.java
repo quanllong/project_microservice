@@ -4,13 +4,8 @@ import com.stylefeng.guns.core.shiro.factory.IShiro;
 import com.stylefeng.guns.core.shiro.factory.ShiroFactroy;
 import com.stylefeng.guns.core.util.ToolUtil;
 import com.stylefeng.guns.modular.system.model.User;
-import org.apache.shiro.authc.*;
-import org.apache.shiro.authc.credential.CredentialsMatcher;
-import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
-import org.apache.shiro.authz.AuthorizationInfo;
-import org.apache.shiro.authz.SimpleAuthorizationInfo;
-import org.apache.shiro.realm.AuthorizingRealm;
-import org.apache.shiro.subject.PrincipalCollection;
+import sun.net.www.protocol.http.AuthenticationInfo;
+
 
 import java.util.HashSet;
 import java.util.List;

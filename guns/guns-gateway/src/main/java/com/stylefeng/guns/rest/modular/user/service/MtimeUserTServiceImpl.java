@@ -78,36 +78,7 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
     }
 
     //莫智权:
-    // 用户信息查询
-    @Override
-    public GetUserInfoVo getMtimeUserVO(String token) {
-        GetUserInfoVo mtimeUserVo = new GetUserInfoVo();
-        
-        MtimeUserVO user = (MtimeUserVO) redisTemplate.opsForValue().get(token);
-        
-        if(user==null){
-            //抛出异常
-            return null;
-        }
-        
-        mtimeUserVo.setAddress(user.getAddress());
-        mtimeUserVo.setBegainTime(user.getBeginTime());
-        mtimeUserVo.setBiography(user.getBiography());
-        mtimeUserVo.setBirthday(user.getBirthday());
-        mtimeUserVo.setEmail(user.getEmail());
-        mtimeUserVo.setHeadAddress(user.getHeadUrl());
-        mtimeUserVo.setLifeState(user.getLifeState()+"");
-        mtimeUserVo.setNickname(user.getNickName());
-        mtimeUserVo.setPhone(user.getUserPhone());
-        mtimeUserVo.setSex(user.getUserSex());
-        mtimeUserVo.setUpdateTime(user.getUpdateTime());
-        mtimeUserVo.setUsername(user.getUserName());
-        mtimeUserVo.setUuid(user.getUuid());
-
-        return mtimeUserVo;
-    }
-
-    //修改
+    //用户信息修改
     @Override
     public GetUserInfoVo userMessModify(GetUserInfoVo userInfoVo) {
         userInfoVo.setUpdateTime(new Date());

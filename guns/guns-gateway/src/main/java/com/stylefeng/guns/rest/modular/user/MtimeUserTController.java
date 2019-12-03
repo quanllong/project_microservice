@@ -142,8 +142,13 @@ HttpServletRequest request2;*/
         if(token==null){
             return UserResponseVo.fail("查询失败，用户尚未登陆");
         }
-        GetUserInfoVo mtimeUser = mtimeUserTService.getMtimeUserVO(token);
-        int uuid = mtimeUser.getUuid();//通过token获得uuid
+        
+        //通过token获得uuid
+        MtimeUserVO user = (MtimeUserVO) redisTemplate.opsForValue().get(token);
+        if(user==null){
+            return UserResponseVo.fail("查询失败，用户尚未登陆");
+        }
+        int uuid = user.getUuid();
         
         //通过uuid从数据库获得对象信息
         GetUserInfoVo getUserInfoVo = mtimeUserTMapper.getMtimeUserByUuid(uuid);
