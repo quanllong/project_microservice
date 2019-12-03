@@ -48,28 +48,38 @@ public class PayController {
     Request Method: POST
      */
     @RequestMapping("getPayResult")
-    public PayResultVO getPayResult(String orderId,String tryNums){
+    public PayResultVO getPayResult(String orderId, String tryNums){
+
+        PayResultVO payResultVO = new PayResultVO();
+        HashMap<String, Object> data = new HashMap<>();
+        if(Integer.valueOf(tryNums) > 13){
+            payResultVO.setMsg("订单超时未支付");
+            return payResultVO;
+        }
+        System.out.println("当前查询次数：" + tryNums);
+
         // 查询是否支付
         boolean flag = payService.check(orderId);
-        PayResultVO payResultVO = new PayResultVO();
         if(flag){
             // 修改数据库，修改成功返回1，否则0
             int status = 1; // 传入的值
             int update = orderService.updateOrderStatus(orderId,status);
             if(update == 1){
-                payResultVO.setOrderId(orderId);
-                payResultVO.setOrderMsg("支付成功");
-                payResultVO.setOrderStatus(1);
+                data.put("orderStatus",1);
+                data.put("orderMsg","支付成功");
+                payResultVO.setData(data);
                 return payResultVO;
             } else {
                 // 支付成功，但数据库没改成功
-                System.out.println("订单已经支付，但是数据库没改成功");
+                data.put("orderStatus",0);
+                data.put("orderMsg","订单已经支付，但是数据库没更新成功");
+                System.out.println("订单已经支付，但是数据库没更新成功");
             }
         } else {
             payResultVO.setStatus(1);
             payResultVO.setMsg("订单支付失败，请稍后重试");
         }
-        payResultVO.setMsg("系统异常，请联系管理员");
+        payResultVO.setMsg("订单未支付或者被关闭");
         payResultVO.setStatus(999);
         return payResultVO;
     }

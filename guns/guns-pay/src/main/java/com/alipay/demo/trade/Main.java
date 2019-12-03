@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -566,6 +567,10 @@ public class Main {
                 fileName = "qr-" + response.getOutTradeNo() + ".png";
                 // filePath = String.format("G:\\kkkk\\qrcode/qr-%s.png", response.getOutTradeNo());
                 filePath = String.format(diskPath + "/qr-%s.png", response.getOutTradeNo());
+                File disk = new File(diskPath);
+                if(!disk.exists()){
+                    disk.mkdirs();
+                }
                 log.info("filePath:" + filePath);
                 ZxingUtils.getQRCodeImge(response.getQrCode(), 256,256, filePath);
                 break;
@@ -605,7 +610,7 @@ public class Main {
     public boolean tradeQuery(String orderId){
         // (必填) 商户订单号，通过此商户订单号查询当面付的交易状态
         // String outTradeNo = "tradeprecreate12345";
-        String outTradeNo = orderId;
+        String outTradeNo = "tradeprecreate" + orderId;
 
         // 创建查询请求builder，设置请求参数
         AlipayTradeQueryRequestBuilder builder = new AlipayTradeQueryRequestBuilder()
