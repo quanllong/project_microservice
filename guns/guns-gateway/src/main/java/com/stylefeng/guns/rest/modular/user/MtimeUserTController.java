@@ -118,7 +118,8 @@ HttpServletRequest request2;*/
            String token = authorization.substring(7);
            Object o = redisTemplate.opsForValue().get(token);
            if (o == null) {
-               return BaseResponseVO.fail("该token已经过期");
+               /*token失效，让其直接退出*/
+               return BaseResponseVO.ok("成功退出");
            }
 
            /*删除 redis中的token*/
