@@ -3,7 +3,6 @@ package com.stylefeng.guns.rest.modular.user.service;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.stylefeng.guns.rest.common.persistence.dao.MtimeUserTMapper;
 import com.stylefeng.guns.rest.common.persistence.model.MtimeUserT;
-import com.stylefeng.guns.rest.config.properties.JwtProperties;
 import com.stylefeng.guns.rest.service.MtimeUserTService;
 import com.stylefeng.guns.rest.service.vo.GetUserInfoVo;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
@@ -11,8 +10,6 @@ import com.stylefeng.guns.rest.service.vo.RegisterReqVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -65,15 +62,15 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
         //userT.setUuid();
         userT.setUserName(registerReqVo.getUsername());
         userT.setUserPwd(registerReqVo.getPassword());
-        userT.setNickName("阿里郎");
+        userT.setNickName("无");
         //userT.setUserSex();
-        //userT.setBirthday();
+        userT.setBirthday("2000-01-01");
         userT.setEmail(registerReqVo.getEmail());
         userT.setUserPhone(registerReqVo.getMobile());
         userT.setAddress(registerReqVo.getAddress());
         //userT.setHeadUrl();
         userT.setBiography("这个人很懒，还没有填写个人说明");
-        //userT.setLifeState();
+        userT.setLifeState(0);
         userT.setBeginTime(new Date());
         userT.setUpdateTime(new Date());
         Integer insert = mtimeUserTMapper.insert(userT);
@@ -90,6 +87,11 @@ public class MtimeUserTServiceImpl implements MtimeUserTService {
         int i = mtimeUserTMapper.updateByMtimeUserT(mtimeUserT);
         
         return userInfoVo;
+    }
+
+    @Override
+    public List<MtimeUserVO> selectUserAndPwd(String userName, String password) {
+        return mtimeUserTMapper.selectUserByNameAndPwd(userName, password);
     }
 
     private MtimeUserT getMtimeUserT(GetUserInfoVo userInfoVo) {

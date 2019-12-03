@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -119,7 +118,7 @@ HttpServletRequest request2;*/
            String token = authorization.substring(7);
            Object o = redisTemplate.opsForValue().get(token);
            if (o == null) {
-               return BaseResponseVO.fail("退出失败，用户尚未登陆");
+               return BaseResponseVO.fail("该token已经过期");
            }
 
            /*删除 redis中的token*/

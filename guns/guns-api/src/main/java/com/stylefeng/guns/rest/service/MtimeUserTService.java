@@ -14,4 +14,6 @@ public interface MtimeUserTService {
     boolean login(String userName, String password);
     
     GetUserInfoVo userMessModify(GetUserInfoVo userInfoVo);
+
+    List<MtimeUserVO> selectUserAndPwd(String userName, String password);
 }
