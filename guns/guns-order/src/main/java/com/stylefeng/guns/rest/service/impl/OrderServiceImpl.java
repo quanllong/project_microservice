@@ -318,7 +318,7 @@ public class OrderServiceImpl implements OrderService {
         if (StringUtils.isEmpty(pageSize)){
             pageSize = "5";
         }
-        Page<MoocOrderT> tPage = new Page<>(Integer.valueOf(nowPage), Integer.valueOf(pageSize));
+        Page<MoocOrderT> tPage = new Page<>(Integer.valueOf(nowPage), Integer.valueOf(pageSize), "order_time",false);
         EntityWrapper<MoocOrderT> wrapper = new EntityWrapper<>();
         wrapper.eq("order_user",userId);
 
