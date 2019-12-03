@@ -78,4 +78,15 @@ public class PayServiceImpl implements PayService {
         codeInfo.setImgPre(url);
         return codeInfo;
     }
+
+    /**
+     * 检查订单是否已经支付
+     * @param orderId
+     * @return
+     */
+    @Override
+    public boolean check(String orderId) {
+        boolean b = main.tradeQuery(orderId);
+        return b;
+    }
 }
