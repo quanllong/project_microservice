@@ -10,7 +10,7 @@ jwt:
   md5-key: randomKey      #md5加密混淆key
 
 server:
-  port: 8094 #项目端口
+  port: 8095 #项目端口
 
 mybatis-plus:
   mapper-locations: classpath*:com/stylefeng/guns/rest/**/mapping/*.xml
@@ -27,30 +27,25 @@ mybatis-plus:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #打印sql语句,调试用
 
 spring:
-  application:
-    name: pay
+  datasource:
+      url: jdbc:mysql://127.0.0.1:3306/guns?autoReconnect=true&useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+      username: root
+      password: 123456
+      filters: log4j,wall,mergeStat
   dubbo:
     registry: zookeeper://localhost:2181
     server: true
     protocol:
       name: dubbo
-      port: 20894
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/guns?autoReconnect=true&useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
-    username: root
-    password: 123456
-    filters: log4j,wall,mergeStat
+      port: 20895
+  application:
+    name: rest
 logging:
   level.root: info
   level.com.stylefeng: debug
   path: logs/
-  file: guns-pay.log
-mall:
-  aliyun:
-    oss:
-      bucket: cskaoyanqrcode
-      endPoint: oss-cn-beijing.aliyuncs.com
-    access-key-id: LTAI4FxQXEUXcmeCuC6Vq3rL
-    access-secret: JXnAhGnINETJCgzoYDwG0sUkQnXLc2
-alipay:
-  diskPath: g:/kkkk/qrcode
+  file: guns-promovo.log
+mq:
+  nameserver:
+    addr: localhost:9876
+  topic: redis-stock
