@@ -279,6 +279,7 @@ public class OrderServiceImpl implements OrderService {
         orderVO.setSeatsName(moocOrderT.getSeatsName().replaceAll(","," "));
         orderVO.setOrderPrice(String.valueOf(moocOrderT.getOrderPrice()));
         orderVO.setOrderTimestamp(String.valueOf(moocOrderT.getOrderTime().getTime()));  // 订单时间戳
+        orderVO.setOrderStatus(String.valueOf(moocOrderT.getOrderStatus()));
         return orderVO;
     }
 

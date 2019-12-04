@@ -52,10 +52,10 @@ public class PayController {
 
         PayResultVO payResultVO = new PayResultVO();
         HashMap<String, Object> data = new HashMap<>();
-        if(Integer.valueOf(tryNums) > 13){
+        /*if(Integer.valueOf(tryNums) > 13){
             payResultVO.setMsg("订单超时未支付");
             return payResultVO;
-        }
+        }*/
         System.out.println("当前查询次数：" + tryNums);
 
         // 查询是否支付
