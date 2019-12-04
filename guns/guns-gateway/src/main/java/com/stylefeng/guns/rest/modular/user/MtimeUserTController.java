@@ -40,7 +40,7 @@ public class MtimeUserTController {
 
     @Autowired
     JwtProperties jwtProperties;
-    
+
     @Autowired
     MtimeUserTMapper mtimeUserTMapper;
 
@@ -143,14 +143,14 @@ HttpServletRequest request2;*/
         if(token==null){
             return UserResponseVo.fail("查询失败，用户尚未登陆");
         }
-        
+
         //通过token获得uuid
         MtimeUserVO user = (MtimeUserVO) redisTemplate.opsForValue().get(token);
         if(user==null){
             return UserResponseVo.fail("查询失败，用户尚未登陆");
         }
         int uuid = user.getUuid();
-        
+
         //通过uuid从数据库获得对象信息
         GetUserInfoVo getUserInfoVo = mtimeUserTMapper.getMtimeUserByUuid(uuid);
 
@@ -189,10 +189,12 @@ HttpServletRequest request2;*/
             //int i = 1/0;
             String authorization = request.getHeader("Authorization");
             if (authorization == null) {
-                return BaseResponseVO.fail("前端未传入Authorization");
+                // return BaseResponseVO.fail("前端未传入Authorization");
+                return BaseResponseVO.ok("成功退出");   // quanllong改的。token已经过期，但是页面右上角还显示着用户，这时候点击退出的话，要允许它直接退出
             }
             if (authorization != null && !authorization.startsWith("Bearer ")) {
-                return BaseResponseVO.fail("该Authorization无效");
+                // return BaseResponseVO.fail("该Authorization无效");
+                return BaseResponseVO.ok("成功退出");   // quanllong改的
             }
 
             String token = authorization.substring(7);
