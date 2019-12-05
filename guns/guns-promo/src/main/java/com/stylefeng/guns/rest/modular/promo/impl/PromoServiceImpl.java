@@ -167,8 +167,8 @@ public class PromoServiceImpl implements PromoService {
         // 更改redis缓存
         redisTemplate.opsForHash().put("promoId--stock",promoId,stock - Integer.valueOf(amount));
 
-        // redis要把缓存告诉数据库
-        Boolean aBoolean = mqProducer.decreaseStock(Integer.valueOf(promoId), stock);
+        // redis要把缓存告诉数据库，amount 是被减去的量
+        Boolean aBoolean = mqProducer.decreaseStock(Integer.valueOf(promoId), stock - Integer.valueOf(amount));
         if(aBoolean){
             return 1;
         }
