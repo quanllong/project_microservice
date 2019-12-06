@@ -1,12 +1,15 @@
 package com.stylefeng.guns.rest.service.vo.promovo;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
+@NoArgsConstructor
 public class PromoData implements Serializable {
 
         private static final long serialVersionUID = 6086688078639988207L;

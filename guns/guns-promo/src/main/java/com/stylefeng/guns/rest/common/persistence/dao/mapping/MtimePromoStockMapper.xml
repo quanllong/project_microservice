@@ -8,5 +8,22 @@
         <result column="promo_id" property="promoId" />
         <result column="stock" property="stock" />
     </resultMap>
+    <select id="selectStockByCinemaIdAndPromoId"
+            resultType="com.stylefeng.guns.rest.common.persistence.model.MtimePromoStock">
+    select
+    s.promo_id as promoId,
+    s.stock as stock
+    from mtime_promo p
+    left join mtime_promo_stock s on p.UUID = s.promo_id
+    <where>
+        <if test="cinemaId != null">
+            p.cinema_id = #{cinemeId}
+        </if>
+        <if test="promoId != null">
+            and p.promo_id = #{promoId}
+        </if>
+    </where>
+
+    </select>
 
 </mapper>

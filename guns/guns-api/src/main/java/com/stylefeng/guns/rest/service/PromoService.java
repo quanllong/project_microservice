@@ -5,11 +5,15 @@ import com.stylefeng.guns.rest.service.vo.promovo.PromoVO;
 
 public interface PromoService {
 
-    int pushStockToRedis(String cinemaId);
+    boolean pushStockToRedis(String cinemaId);
 
     PromoVO getPromoInfo(PromoParams promoParams);
 
-    int establishOrder(String promoId, String amount, Integer userId);
+    boolean establishOrder(String promoId, String amount, Integer userId,String stockLogId);
 
+    boolean saveOrderInfo(String promoId, String amount, Integer userId,String stockLogId);
 
+    String initPromoStockLog(String promoId, String amount);
+
+    Boolean establishOrderInTransaction(String promoId, String amount, Integer userId,String stockLogId);
 }

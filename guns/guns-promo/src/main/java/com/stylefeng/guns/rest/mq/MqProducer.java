@@ -1,14 +1,18 @@
 package com.stylefeng.guns.rest.mq;
 
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSON;
-import com.stylefeng.guns.rest.common.persistence.model.MtimePromoStock;
+import com.stylefeng.guns.rest.common.persistence.dao.MtimeStockLogMapper;
+import com.stylefeng.guns.rest.common.persistence.model.MtimeStockLog;
+import com.stylefeng.guns.rest.modular.promo.bean.ArgsBean;
+import com.stylefeng.guns.rest.modular.promo.bean.MsgBean;
+import com.stylefeng.guns.rest.service.PromoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.client.producer.*;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,16 +29,30 @@ public class MqProducer {
 
     private DefaultMQProducer producer;
 
+    private TransactionMQProducer txProducer;
+
+    @Autowired
+    MtimeStockLogMapper mtimeStockLogMapper;
+
+    @Reference(interfaceClass = PromoService.class,check = false)
+    private PromoService promoService;
+
     @Value("${mq.nameserver.addr}")
     private String addr;
 
     @Value("${mq.topic}")
     private String topic;
 
+    @Value("${mq.producer-group}")
+    private String producerGroup;
+
+    @Value("${mq.transaction-producer-group}")
+    private String transactionProducerGroup;
+
     @PostConstruct
     public void init(){
 
-        producer = new DefaultMQProducer("producer_group");
+        producer = new DefaultMQProducer(producerGroup);
         producer.setNamesrvAddr(addr);
         try {
             producer.start();
@@ -42,6 +60,63 @@ public class MqProducer {
             e.printStackTrace();
         }
         log.info("producer 初始化成功!!! addr:{}",addr);
+
+        txProducer = new TransactionMQProducer(transactionProducerGroup);
+        txProducer.setNamesrvAddr(addr);
+        try {
+            txProducer.start();
+        } catch (MQClientException e) {
+            e.printStackTrace();
+        }
+        log.info("txProducer初始化成功 addr:{}",addr);
+
+        // 设置一个事务监听器
+        txProducer.setTransactionListener(new TransactionListener() {
+            /**
+             * 监听到发送消息成功就会执行本地事务
+             * @param message
+             * @param
+             * @return
+             */
+            @Override
+            public LocalTransactionState executeLocalTransaction(Message message, Object args) {
+                ArgsBean argsBean = (ArgsBean) args;
+                Integer userId = argsBean.getUserId();
+                String amount = argsBean.getAmount();
+                String promoId = argsBean.getPromoId();
+                String stockLogId = argsBean.getStockLogId();
+
+                // 执行本地事务
+                boolean flag = false;
+                try{
+                    flag = promoService.saveOrderInfo(promoId, amount, userId,stockLogId);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                if (!flag){
+                    return LocalTransactionState.ROLLBACK_MESSAGE;
+                }
+                return LocalTransactionState.COMMIT_MESSAGE;
+            }
+
+            @Override
+            public LocalTransactionState checkLocalTransaction(MessageExt messageExt) {
+                byte[] body = messageExt.getBody();
+                String s = new String(body);
+                MsgBean msgBean = JSON.parseObject(s, MsgBean.class);
+
+                String stockLogId = msgBean.getStockLogId();
+                MtimeStockLog stockLog = mtimeStockLogMapper.selectById(stockLogId);
+                if(stockLog.getStatus() == 1){
+                    return LocalTransactionState.COMMIT_MESSAGE;
+                }
+                if(stockLog.getStatus() == 2){
+                    return LocalTransactionState.ROLLBACK_MESSAGE;
+                }
+                return LocalTransactionState.UNKNOW;
+            }
+        });
     }
 
     public Boolean decreaseStock(Integer promoId, Integer stock){
@@ -78,5 +153,46 @@ public class MqProducer {
             return false;
         }
 
+    }
+
+
+    public Boolean savePromoInfoInTransaction(String promoId, String amount, Integer userId,String stockLogId) {
+
+        // 封装要发送的消息
+        MsgBean msgBean = new MsgBean();
+        msgBean.setAmount(amount);
+        msgBean.setPromoId(promoId);
+        msgBean.setUserId(userId);
+        msgBean.setStockLogId(stockLogId);
+        String jsonString = JSON.toJSONString(msgBean);
+
+        Message message = new Message(topic, jsonString.getBytes(Charset.forName("utf-8")));
+
+        // 封装形参,提供给本地事务
+        ArgsBean argsBean = new ArgsBean();
+        argsBean.setPromoId(promoId);
+        argsBean.setAmount(amount);
+        argsBean.setUserId(userId);
+        argsBean.setStockLogId(stockLogId);
+
+        TransactionSendResult transactionSendResult = null;
+        try {
+            transactionSendResult = txProducer.sendMessageInTransaction(message,argsBean);
+        } catch (MQClientException e) {
+            e.printStackTrace();
+            log.info("发生了异常可能是内存不足");
+        }
+
+        if (transactionSendResult == null){
+            return false;
+        }
+
+        // 获取本地事务执行状态
+        LocalTransactionState localTransactionState = transactionSendResult.getLocalTransactionState();
+        if(LocalTransactionState.COMMIT_MESSAGE.equals(localTransactionState)){
+            return true;
+        } else {
+            return false;
+        }
     }
 }

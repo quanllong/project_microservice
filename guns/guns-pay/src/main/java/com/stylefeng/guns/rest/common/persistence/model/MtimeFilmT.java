@@ -24,7 +24,7 @@ public class MtimeFilmT extends Model<MtimeFilmT> {
     /**
      * 主键编号
      */
-    @TableId(value = "UUID", type = IdType.AUTO)
+    @TableId(value = "UUID", type = IdType.INPUT)
     private Integer uuid;
     /**
      * 影片名称

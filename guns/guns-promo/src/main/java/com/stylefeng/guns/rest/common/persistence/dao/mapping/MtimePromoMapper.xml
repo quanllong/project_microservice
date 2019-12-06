@@ -12,5 +12,28 @@
         <result column="status" property="status" />
         <result column="description" property="description" />
     </resultMap>
+    <select id="queryPromoDataByCinemaId" resultType="com.stylefeng.guns.rest.service.vo.promovo.PromoData">
+        SELECT
+        c.cinema_address as cinemaAddress ,
+        c.UUID	as cinemaId,
+        c.cinema_name as cinemaName,
+        c.img_address as imgAddress,
+        p.description as description,
+        p.start_time as startTime,
+        p.end_time as endTime,
+        p.price as price,
+        p.`status` as status,
+        p.UUID as uuid
+        FROM `mtime_promo` p
+        left join mtime_cinema_t c on p.cinema_id = c.UUID
+        <where>
+          <if test="cinemaId != null ">
+                c.UUID = #{cinemaId}
+          </if>
+          <if test="promoId != null">
+              and p.UUID = #{promoId}
+          </if>
+        </where>
+    </select>
 
 </mapper>

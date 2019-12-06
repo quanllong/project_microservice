@@ -27,6 +27,12 @@ public class BaseReqVo<T> implements Serializable {
         baseReqVo.setData(data);
         return baseReqVo;
     }
+    // quanllong
+    public static BaseReqVo ok(String msg){
+        BaseReqVo baseReqVo = BaseReqVo.ok();
+        baseReqVo.setMsg(msg);
+        return baseReqVo;
+    }
     public static BaseReqVo fail(){
         BaseReqVo baseReqVo = new BaseReqVo();
         baseReqVo.setMsg("失败");

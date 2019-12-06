@@ -3,7 +3,10 @@ package com.stylefeng.guns.rest.common.persistence.dao;
 import com.stylefeng.guns.rest.common.persistence.model.MtimePromoStock;
 import com.baomidou.mybatisplus.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.util.List;
 
 /**
  * <p>
@@ -17,4 +20,10 @@ public interface MtimePromoStockMapper extends BaseMapper<MtimePromoStock> {
 
     @Update("update mtime_promo_stock set stock = newStock where promo_id = #{promoId} ")
     int updateStock(@Param("promoId") Integer promoId, @Param("newStock") int stock);
+
+    @Select("select stock from mtime_promo_stock where promoId = #{promoId} ")
+    MtimePromoStock queryStockByPromoId(@Param("promoId") String promoId);
+
+    List<MtimePromoStock> selectStockByCinemaIdAndPromoId(@Param("cinemaId") String cinemaId,
+                                                          @Param("promoId") String promoId);
 }
