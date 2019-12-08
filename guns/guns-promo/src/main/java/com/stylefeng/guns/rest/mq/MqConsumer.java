@@ -52,24 +52,37 @@ public class MqConsumer {
                 byte[] body = messageExt.getBody();
 
                 String bodyStr = new String(body);
-
-//                System.out.println(bodyStr);
                 HashMap hashMap = JSON.parseObject(bodyStr, HashMap.class);
 
-                Integer promoId = (Integer)hashMap.get("promoId");
-                Integer stock = (Integer) hashMap.get("stock");
+                String promoId = null;
+                Integer amount = null;
+                try{
+                    promoId = (String)hashMap.get("promoId");
+                    amount = (Integer) hashMap.get("amount");
+                } catch (Exception e){
+                    e.printStackTrace();
+                    log.info("类型转换异常，promoId:{},amount:{}",promoId);
+                }
 
-                log.info("收到消息，promoId:{}， stock:{}",promoId,stock);
+                log.info("收到消息，promoId:{}， amount:{}",promoId,amount);
 
                 //有重试机制 16次
 
                 // 真正去减数据库的库存
-
-                int update = mtimePromoStockMapper.updateStock(promoId, stock);
-                if(update == 1){
-                    log.info("更新库存成功：promoId:{}, stock:{}",promoId,stock);
+                int update = 0;
+                try{
+                    update = mtimePromoStockMapper.updateStock(promoId, amount);
+                } catch (Exception e){
+                    e.printStackTrace();
+                    log.info("更改数据库库存失败promoId:{}, amount:{}",promoId,amount);
+                    // return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                 }
-                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+
+                if(update == 1){
+                    log.info("更新库存成功：promoId:{}, stock:{}",promoId,amount);
+                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                }
+                return ConsumeConcurrentlyStatus.RECONSUME_LATER;
             }
         });
 

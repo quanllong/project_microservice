@@ -18,8 +18,7 @@ import java.util.List;
  */
 public interface MtimePromoStockMapper extends BaseMapper<MtimePromoStock> {
 
-    @Update("update mtime_promo_stock set stock = newStock where promo_id = #{promoId} ")
-    int updateStock(@Param("promoId") Integer promoId, @Param("newStock") int stock);
+    int updateStock(@Param( value = "promoId") String promoId, @Param("amount") int amount);
 
     @Select("select stock from mtime_promo_stock where promoId = #{promoId} ")
     MtimePromoStock queryStockByPromoId(@Param("promoId") String promoId);

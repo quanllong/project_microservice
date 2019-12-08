@@ -7,12 +7,20 @@ import com.baomidou.mybatisplus.plugins.Page;
 import com.google.gson.Gson;
 import com.stylefeng.guns.rest.common.persistence.dao.*;
 import com.stylefeng.guns.rest.common.persistence.model.*;
+import com.stylefeng.guns.rest.consistant.OrderStatus;
+import com.stylefeng.guns.rest.consistant.RedisPrefixConsistant;
+import com.stylefeng.guns.rest.mq.Producer;
 import com.stylefeng.guns.rest.service.OrderService;
 import com.stylefeng.guns.rest.service.bena.Seats;
 import com.stylefeng.guns.rest.service.vo.OrderTestVO;
 import com.stylefeng.guns.rest.service.vo.cinemavo.HallInfoVO;
+import com.stylefeng.guns.rest.service.vo.ordervo.OrderPayStatus;
 import com.stylefeng.guns.rest.service.vo.ordervo.OrderVO;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -27,6 +35,7 @@ import java.util.*;
 
 @Component
 @Service(interfaceClass = OrderService.class)
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -42,7 +51,11 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     RedisTemplate redisTemplate;
     @Autowired
+    MtimePromoOrderMapper mtimePromoOrderMapper;
+    @Autowired
     Gson gson;
+    @Autowired
+    Producer producer;
 
     /**
      * 这是用来测试项目有没有跑通的，与本项目关系不大
@@ -84,15 +97,14 @@ public class OrderServiceImpl implements OrderService {
      * @return 返回座位表对象
      */
     private Seats seatsFromJsonFile(Integer fieldId){
-        EntityWrapper<MtimeFieldT> wrapper = new EntityWrapper<>();
-        wrapper.eq("field_id",fieldId);
-        MtimeFieldT mtimeFieldT = mtimeFieldTMapper.selectById(fieldId);
-        MtimeHallDictT mtimeHallDictT = mtimeHallDictTMapper.selectById(mtimeFieldT.getHallId());
 
-        // 如果是全部，则默认是imax厅
+        // 联合查询
+        MtimeHallDictT mtimeHallDictT = mtimeHallDictTMapper.queryHallDictByFieldId(fieldId);
+
+        // 如果是全部，则默认是4dx厅
         String seatAddress = mtimeHallDictT.getSeatAddress();
         if (seatAddress == null){
-            seatAddress = "seats/imax.json";
+            seatAddress = "seats/4dx.json";
         }
 
         // 尝试取出座位表对象，如果取出的对象为空，则说明reids还没有
@@ -156,8 +168,9 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     private String getSoldSeatsByFieldId(String fieldId){
-        // 获得订单信息
-        List<MoocOrderT> fields = moocOrderTMapper.selectList(new EntityWrapper<MoocOrderT>().eq("field_id", fieldId));
+        // 获得订单信息,要那些已经待支付和支付成功的订单，然后统计售出座位
+        List<MoocOrderT> fields = moocOrderTMapper.selectList(new EntityWrapper<MoocOrderT>().eq("field_id", fieldId)
+                                                                                             .notIn("order_status",OrderStatus.CLOSED.getCode()));
         // 如果一张都没卖出过，fields为空
         if(CollectionUtils.isEmpty(fields)){
             return "";
@@ -203,15 +216,31 @@ public class OrderServiceImpl implements OrderService {
 
         moocOrderT.setOrderTime(new Date());
         moocOrderT.setOrderUser(userId);
-        moocOrderT.setOrderStatus(0);   // 默认是0，表示未支付
-        String uuid = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 20);
-        moocOrderT.setUuid(uuid);
+        moocOrderT.setOrderStatus(OrderStatus.NOT_PAY.getCode());   // 默认是0，表示未支付
+        String orderId = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 20);
+        moocOrderT.setUuid(orderId);
+
         boolean insert = moocOrderT.insert();   // 竟然有这个方法，暂时不需要MoocOrderTMapper
+
+        OrderVO orderVO = null;
         if(insert){
-            OrderVO orderVO = moocOrderT2orderVO(moocOrderT);
-            return orderVO;
+            log.info("创建订单成功，orderId:{}",orderId);
+            orderVO = moocOrderT2orderVO(moocOrderT);
         }
-        return null;
+
+        // 发送延时消息,用户超时未支付会被关闭订单
+        SendResult sendResult = producer.sendDelayOrder(orderId,userId);
+        SendStatus sendStatus = sendResult.getSendStatus();
+        if(sendStatus.equals(SendStatus.SEND_OK)){
+            log.info("发送延时消息成功，orderId:{}",orderId);
+        }
+
+        // 将当前用户的订单存进redis
+        String  key = String.format(RedisPrefixConsistant.CURRENT_ORDER,userId);
+        OrderPayStatus orderPayStatus = new OrderPayStatus(orderId, OrderStatus.NOT_PAY.getCode());
+        redisTemplate.opsForValue().set(key,orderPayStatus);  // (userId,orderPayStatus)
+
+        return orderVO;
     }
 
     /**
@@ -279,7 +308,15 @@ public class OrderServiceImpl implements OrderService {
         orderVO.setSeatsName(moocOrderT.getSeatsName().replaceAll(","," "));
         orderVO.setOrderPrice(String.valueOf(moocOrderT.getOrderPrice()));
         orderVO.setOrderTimestamp(String.valueOf(moocOrderT.getOrderTime().getTime()));  // 订单时间戳
-        orderVO.setOrderStatus(String.valueOf(moocOrderT.getOrderStatus()));
+        // 0-待支付,1-已支付,2-已关闭
+        switch (moocOrderT.getOrderStatus()){
+            case 0:
+                orderVO.setOrderStatus("待支付");break;
+            case 1:
+                orderVO.setOrderStatus("已支付");break;
+            case 2:
+                orderVO.setOrderStatus("已关闭");break;
+        }
         return orderVO;
     }
 
@@ -293,20 +330,9 @@ public class OrderServiceImpl implements OrderService {
         // 取出座位表，最好把座位表存进内存或者以组件的方式存进容器1
         Seats seats = seatsFromJsonFile(fieldId);
 
-        /*// 取得最后一个单人座的id
-        List<List<Seats.SingleBean>> singleList = seats.getSingle();
-        List<Seats.SingleBean> singleBeans = singleList.get(singleList.size() - 1);
-        int lastSingleSeatId = singleBeans.get(singleBeans.size() - 1).getSeatId();
-        // id小于lastSingleSeatId的座位的价格是60，大于lastSingleSeatId的作为是情侣座，每个120*/
-
         // 即使选一个情侣座，也会传两个座位id进来
         Integer unitPrice = mtimeFieldTMapper.selectById(fieldId).getPrice(); // 取出该放映场次的单人票价
-        double totalPrice = 0;
-        /*for (String seatId : seatIds) {
-            double price = Integer.valueOf(seatId) <= lastSingleSeatId ? unitPrice : unitPrice * 2;
-            totalPrice += price;
-        }*/
-        totalPrice = unitPrice * seatIds.length;        // 单价乘以座位个数
+        double totalPrice =  unitPrice * seatIds.length;        // 单价乘以座位个数
         return totalPrice;
     }
 
@@ -325,14 +351,25 @@ public class OrderServiceImpl implements OrderService {
 
         // 取出order信息
         List<MoocOrderT> moocOrderTS = moocOrderTMapper.selectPage(tPage, wrapper);
-        if(CollectionUtils.isEmpty(moocOrderTS)){
+        /*if(CollectionUtils.isEmpty(moocOrderTS)){
             return null;
-        }
+        }*/
+
         ArrayList<OrderVO> orderList = new ArrayList<>();
         for (MoocOrderT moocOrderT : moocOrderTS) {
             OrderVO orderVO = moocOrderT2orderVO(moocOrderT);
             orderList.add(orderVO);
         }
+
+        // 取出秒杀订单
+        List<OrderVO> promoOrderList = mtimePromoOrderMapper.selectPromoOrderByUserId(userId);
+        for (OrderVO orderVO : promoOrderList) {
+            orderVO.setOrderStatus("已支付");
+            orderVO.setFilmName("秒杀订单");
+        }
+
+        orderList.addAll(promoOrderList);
+
         return orderList;
     }
 
@@ -374,5 +411,14 @@ public class OrderServiceImpl implements OrderService {
     public int updateOrderStatus(String orderId, int status) {
         int update = moocOrderTMapper.updateStatusByUuid(orderId,status);
         return update;
+    }
+
+    @Override
+    public Boolean checkOrdinaryOrderStatus(String orderId) {
+        Integer code = moocOrderTMapper.selectOrderStatusByOrderId(orderId);
+        if (code == OrderStatus.PAY_SUCCESS.getCode()){
+            return true;    // 已支付
+        }
+        return false;
     }
 }

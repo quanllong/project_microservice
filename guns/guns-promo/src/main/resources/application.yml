@@ -49,5 +49,7 @@ mq:
   nameserver:
     addr: localhost:9876
   topic: redis-stock
-  producer-group: producer_group
+  topic2: order-status
+  producer-group: producer-group
+  consumer-group: consumer-group
   transaction-producer-group: transactionProducerGroup

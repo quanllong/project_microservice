@@ -1,24 +1,35 @@
 package com.stylefeng.guns.rest.modular.promo;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.google.common.util.concurrent.RateLimiter;
+import com.stylefeng.guns.core.exception.GunsException;
+import com.stylefeng.guns.core.exception.GunsExceptionEnum;
 import com.stylefeng.guns.rest.BaseReqVo;
+import com.stylefeng.guns.rest.consistant.RedisPrefixConsistant;
 import com.stylefeng.guns.rest.service.PromoService;
+import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
+import com.stylefeng.guns.rest.service.vo.promovo.ActionInfo;
 import com.stylefeng.guns.rest.service.vo.promovo.PromoParams;
 import com.stylefeng.guns.rest.service.vo.promovo.PromoVO;
 import com.stylefeng.guns.rest.util.TokenUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StringUtils;
+import org.springframework.scripting.bsh.BshScriptUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.concurrent.TimeUnit;
+import java.io.Serializable;
+import java.util.concurrent.*;
 
 
 @RequestMapping("promo")
 @RestController
+@Slf4j
 public class PromoController {
 
     private static final String PUBLISH_STOCK_REIDS = "redis_stock";
@@ -30,6 +41,22 @@ public class PromoController {
     TokenUtils tokenUtils;
     @Autowired
     RedisTemplate redisTemplate;
+
+    // 声明一个线程池
+    private ExecutorService executorService;
+
+    // 声明一个令牌桶
+    private RateLimiter rateLimiter;
+
+    @PostConstruct
+    public void init(){
+        // 初始化一个固定数量大小的线程池
+        executorService = Executors.newFixedThreadPool(100);
+
+        // 固定每秒产生10个令牌
+        // rateLimiter.setRate(100);
+        rateLimiter = RateLimiter.create(10);
+    }
 
     /*
     Request URL: http://115.29.141.32/promo/publishPromoStock
@@ -58,12 +85,6 @@ public class PromoController {
     @RequestMapping("getPromo")
     public PromoVO getPromo(PromoParams promoParams, HttpServletRequest request){
         // 不需登录
-        /*MtimeUserVO mtimeUserVO = tokenUtils.parseRequest(request);
-        if(mtimeUserVO == null){
-            PromoVO promoVO = new PromoVO();
-            promoVO.setMsg("请先登录"); // 测试前端是否能显示出来
-            return null;
-        }*/
         PromoVO promoVO = promoService.getPromoInfo(promoParams);
         return promoVO;
     }
@@ -72,11 +93,57 @@ public class PromoController {
     /promo/generateToken
     promoId /*秒杀活动id,必须传
      */
-    /*@RequestMapping("generateToken")
-    public BaseReqVo generateToken(@RequestParam(required = true,name = "promoId") String promoId){
-        String token = promoService.generateToken(promoId);
-        if(StringUtil)
-    }*/
+    @RequestMapping("generateToken")
+    public BaseReqVo generateToken(@RequestParam(required = true,name = "promoId") String promoId,
+                                   HttpServletRequest request){
+
+
+        // 判断库存是否为空
+        String emptyValue = (String) redisTemplate.opsForValue().get(RedisPrefixConsistant.EMPTY_STOCK_PREFIX + promoId);
+        if (RedisPrefixConsistant.EMPTY.equals(emptyValue)){
+            return BaseReqVo.fail("该商品已售罄");
+        }
+
+        // 取出userId，生成的token必须与userId关联。（开发时暂不打开）
+        MtimeUserVO mtimeUserVO = tokenUtils.parseRequest(request);
+        if(mtimeUserVO == null){
+            return BaseReqVo.fail("取出用户信息失败，请重新登录");
+        }
+        Integer userId = mtimeUserVO.getUuid();
+        // Integer userId = 1; // 先写成固定的
+
+        String key = String.format(RedisPrefixConsistant.USER_TOKEN_PREFIX,promoId,userId);
+
+        // 判断之前有没有获取过（重复点击，幂等性判断）
+        ActionInfo actionInfo = null;
+        if(redisTemplate.hasKey(key)){
+            actionInfo = (ActionInfo) redisTemplate.opsForValue().get(key);
+
+            if(RedisPrefixConsistant.HAS_BUY.equals(actionInfo.getHasBuy())){
+                return BaseReqVo.fail("你已购买过该商品,请选择其它商品~");
+            } else {
+                BaseReqVo<Object> reqVo = new BaseReqVo<>();
+                reqVo.setMsg(actionInfo.getPromoToken());
+                reqVo.setAnotherMsg("已经取得购买资格，请速速下单吧~~");
+                return reqVo;
+            }
+        }
+
+        String promoToken = promoService.generateToken(promoId,userId);
+
+        // 存入loginToken
+        if(actionInfo != null){
+            String loginToken = tokenUtils.getFrontToken(request);
+            actionInfo.setLoginToken(loginToken);
+            redisTemplate.opsForValue().set(key,actionInfo);
+        }
+
+        if(StringUtils.isBlank(promoToken)){
+            return BaseReqVo.fail("获取令牌失败");
+        }
+        return BaseReqVo.ok(promoToken);
+
+    }
 
 
     /*
@@ -84,29 +151,93 @@ public class PromoController {
     /promo/createOrder
      */
     @RequestMapping("createOrder")
-    public BaseReqVo createOrder(String promoId,String amount,HttpServletRequest request){
-        // MtimeUserVO mtimeUserVO = tokenUtils.parseRequest(request);
-        /*if(mtimeUserVO == null){
+    public BaseReqVo createOrder(@RequestParam(required = true,name = "promoId") String promoId,
+                                 @RequestParam(required = true,name = "amount") String amount,
+                                 @RequestParam(required = true,name = "promoToken") String promoToken,
+                                 HttpServletRequest request){
+
+        // 通过rateLimiter去限流
+        double acquire = rateLimiter.acquire();
+        if(acquire < 0){
+            return BaseReqVo.fail("秒杀失败");
+        }
+
+
+        MtimeUserVO mtimeUserVO = tokenUtils.parseRequest(request);
+        if(mtimeUserVO == null){
             return BaseReqVo.fail("请先登录");
         }
+        Integer userId = mtimeUserVO.getUuid();
+        // Integer userId = 1;
+
+        // 参数校验
         if(Integer.valueOf(amount) < 0 || Integer.valueOf(amount) > 5){
             return BaseReqVo.fail("amount不合法");
-        }*/
+        }
 
-        // Integer userId = mtimeUserVO.getUuid();
-        Integer userId = 1;
+        // 判断权限token,避免用户点击同一链接对同一个商品重复下单
+        String key = String.format(RedisPrefixConsistant.USER_TOKEN_PREFIX, promoId, userId);
+
+        Boolean aBoolean1 = redisTemplate.hasKey(key);
+        if(!aBoolean1){
+            return BaseReqVo.fail("用户令牌不存在或已过期");
+        }
+        ActionInfo actionInfo = null;
+        Object o = redisTemplate.opsForValue().get(key);
+        if(o instanceof ActionInfo){
+            System.out.println("77777");
+        }
+        actionInfo = (ActionInfo) o;
+
+        if(RedisPrefixConsistant.HAS_BUY.equals(actionInfo.getHasBuy())){
+            return BaseReqVo.fail("您已秒杀过，请选择其它商品");
+        }
+        if(!promoToken.equals(actionInfo.getPromoToken())){
+            return BaseReqVo.fail("秒杀令牌不合法");
+        }
+
+
         // 普通方式
         // int status = promoService.establishOrder(promoId,amount,userId);
 
         // 使用分布式事务
-        // 首先初始化一条流水记录
-        String stockLogId = promoService.initPromoStockLog(promoId,amount);
-        if(StringUtils.isEmpty(stockLogId)){
-            return BaseReqVo.fail("创建订单失败");
+        Future<Boolean> future = executorService.submit(() -> {
+            Boolean result = false;
+            try{
+                // 首先初始化一条流水记录
+                String stockLogId = promoService.initPromoStockLog(promoId, amount);
+                if (StringUtils.isEmpty(stockLogId)) {
+                    log.info("流水表创建失败，未创建订单，promoId:{},userId:{},amount:{}",promoId,userId,amount);
+                    throw new GunsException(GunsExceptionEnum.STOCK_LOG_ERROR);
+                }
+                // 去新建订单
+                result = promoService.establishOrderInTransaction(promoId, amount, userId, stockLogId);
+                if(!result){
+                    log.info("创建订单失败");
+                    throw new GunsException(GunsExceptionEnum.CREATE_ORDER_ERROR);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            return result;
+        });
+
+
+        // 线程池执行结果
+        Boolean aBoolean = false;
+        try {
+            aBoolean = future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
-        // 去新建订单
-        Boolean result = promoService.establishOrderInTransaction(promoId,amount,userId,stockLogId);
-        if(result){
+
+        if(aBoolean){
+            // 更改令牌状态
+            actionInfo.setHasBuy(RedisPrefixConsistant.HAS_BUY);
+            redisTemplate.opsForValue().set(key,actionInfo);
+            log.info("秒杀成功且改变hasBuy，key:{},hasBuy:{}",key,RedisPrefixConsistant.HAS_BUY);
             return BaseReqVo.ok("秒杀成功，请查看订单");
         }
         return BaseReqVo.fail("人气太旺了，请稍等~~");

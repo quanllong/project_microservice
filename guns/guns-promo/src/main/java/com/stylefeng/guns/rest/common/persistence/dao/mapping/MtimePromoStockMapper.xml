@@ -8,6 +8,11 @@
         <result column="promo_id" property="promoId" />
         <result column="stock" property="stock" />
     </resultMap>
+
+    <update id="updateStock">
+      update mtime_promo_stock set stock = stock - #{amount} where promo_id = #{promoId}
+    </update>
+
     <select id="selectStockByCinemaIdAndPromoId"
             resultType="com.stylefeng.guns.rest.common.persistence.model.MtimePromoStock">
     select

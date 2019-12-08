@@ -23,4 +23,6 @@ public interface OrderService {
     HallInfoVO getFilmFieldInfo(Integer cameraId,Integer fieldId);
 
     int updateOrderStatus(String orderId, int status);
+
+    Boolean checkOrdinaryOrderStatus(String orderId);
 }

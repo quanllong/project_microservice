@@ -14,11 +14,14 @@ import com.stylefeng.guns.rest.common.persistence.model.MtimePromo;
 import com.stylefeng.guns.rest.common.persistence.model.MtimePromoOrder;
 import com.stylefeng.guns.rest.common.persistence.model.MtimePromoStock;
 import com.stylefeng.guns.rest.common.persistence.model.MtimeStockLog;
+import com.stylefeng.guns.rest.consistant.RedisPrefixConsistant;
+import com.stylefeng.guns.rest.consistent.StockLogStatus;
 import com.stylefeng.guns.rest.modular.promo.bean.Stock;
 import com.stylefeng.guns.rest.mq.MqProducer;
 import com.stylefeng.guns.rest.service.CinemaService;
 import com.stylefeng.guns.rest.service.PromoService;
 import com.stylefeng.guns.rest.service.vo.cinemavo.CinemaInfoVO;
+import com.stylefeng.guns.rest.service.vo.promovo.ActionInfo;
 import com.stylefeng.guns.rest.service.vo.promovo.PromoData;
 import com.stylefeng.guns.rest.service.vo.promovo.PromoParams;
 import com.stylefeng.guns.rest.service.vo.promovo.PromoVO;
@@ -30,9 +33,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -44,9 +49,6 @@ public class PromoServiceImpl implements PromoService {
 
     // 存放mtime_promo表的数据
     private static final String REDIS_MTIME_PROMO_PREFIX = "mtime_promo_";
-
-    /*@Reference(interfaceClass = CinemaService.class,check = false)
-    CinemaService cinemaService;*/
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -81,9 +83,22 @@ public class PromoServiceImpl implements PromoService {
         List<MtimePromoStock> promoStocks =  mtimePromoStockMapper.selectStockByCinemaIdAndPromoId(cinemaId,null);
         for (MtimePromoStock promoStock : promoStocks) {
             String promoId = String.valueOf(promoStock.getPromoId());
-            String stock = String.valueOf(promoStock.getStock());
-            // 存到redis
+            Integer stock = promoStock.getStock();  // 值必须是整数
+
+            // 存商品库存redis
             redisTemplate.opsForValue().set(REDIS_MTIME_STOCK_PREFIX + promoId,stock);
+
+
+            // 设置商品令牌数
+            String amountKey = RedisPrefixConsistant.TOKEN_STOCK_PREFIX + promoId;
+            // String amountValue = String.valueOf(Integer.valueOf(stock) * 5);
+            Integer amountValue = Integer.valueOf(stock) * 5;
+            redisTemplate.opsForValue().set(amountKey,amountValue);
+
+            // 更改状态
+            String emptyKey = RedisPrefixConsistant.EMPTY_STOCK_PREFIX + promoId;
+            String emptyValue = RedisPrefixConsistant.NOT_EMPTY;
+            redisTemplate.opsForValue().set(emptyKey,emptyValue);
         }
         return true;
     }
@@ -99,7 +114,7 @@ public class PromoServiceImpl implements PromoService {
         // 先尝试从缓存中取
         //
 
-        // 查出影院信息,这里要优化为联合查询，而且不要用cinemaService的方法
+        // 查出影院信息,这里优化为联合查询
         List<PromoData> promoDataList = mtimePromoMapper.queryPromoDataByCinemaId(null,null);
         for (PromoData promoData : promoDataList) {
 
@@ -150,30 +165,58 @@ public class PromoServiceImpl implements PromoService {
         return 0;
     }
 
+    /**
+     * 生成订单前，先在库存流水表创建一条记录
+     * @param promoId
+     * @param amount
+     * @return
+     */
+    @Override
+    public String initPromoStockLog(String promoId, String amount) {
 
+        MtimeStockLog mtimeStockLog = new MtimeStockLog();
+        String stockLogId = UUID.randomUUID().toString().substring(0,10);
+        mtimeStockLog.setUuid(stockLogId);
+        mtimeStockLog.setPromoId(Integer.valueOf(promoId));
+        mtimeStockLog.setAmount(Integer.valueOf(amount));
+        // 0初始值，1成功，2失败
+        mtimeStockLog.setStatus(StockLogStatus.ORDER_INIT.getStatus());
+        boolean insert = mtimeStockLog.insert();
+        // 返回id
+        return stockLogId;
+    }
+
+    /**
+     * 这是普通的生成订单+扣减库存的做法，没有采用分布式事务
+     * @param promoId
+     * @param amount
+     * @param userId
+     * @param stockLogId
+     * @return
+     */
     @Override
     public boolean establishOrder(String promoId, String amount, Integer userId,String stockLogId) {
 
         // 下单前先检查库存还有没有
-        Integer stock = (Integer) redisTemplate.opsForValue().get(REDIS_MTIME_STOCK_PREFIX + promoId);
-        if(stock == null){
-            return false;  // 未知异常
-        }
-        if(stock < Integer.valueOf(amount)){
-            return false;
-        }
+//        Integer stock = (Integer) redisTemplate.opsForValue().get(REDIS_MTIME_STOCK_PREFIX + promoId);
+//        if(stock == null){
+//            return false;  // 未知异常
+//        }
+//        if(stock < Integer.valueOf(amount)){
+//            return false;
+//        }
 
-        // 保存订单信息
-        boolean flag = saveOrderInfo(promoId, amount, userId,stockLogId);
+        // 保存订单信息（本地事务）
+        /*boolean flag = saveOrderInfo(promoId, amount, userId,stockLogId);
         if(!flag){
             return false;
         }
 
-        // redis要把缓存告诉数据库，amount 是被减去的量
+        // 要把redis缓存告诉数据库，amount 是被减去的量
         Boolean aBoolean = mqProducer.decreaseStock(Integer.valueOf(promoId), stock - Integer.valueOf(amount));
         if(aBoolean){
             return false;
-        }
+        }*/
         return true;
     }
 
@@ -189,7 +232,7 @@ public class PromoServiceImpl implements PromoService {
                 @Override
                 public void run() {
                     int status = mtimeStockLogMapper.updateStatusById(stockLogId, 2);   // 能返回1吗
-                    log.info("订单入库失败 ，流水表状态已经更改 。status = {}",2);
+                    log.info("订单入库失败 ，流水表状态已经更改 。status = {}", StockLogStatus.ORDER_FAIL.getStatus());
                 }
             });
             throw new GunsException(GunsExceptionEnum.SERVER_ERROR);
@@ -201,15 +244,15 @@ public class PromoServiceImpl implements PromoService {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    int status = mtimeStockLogMapper.updateStatusById(stockLogId, 2);   // 能返回1吗
+                    int status = mtimeStockLogMapper.updateStatusById(stockLogId, StockLogStatus.ORDER_FAIL.getStatus());   // 能返回1吗
                     log.info("更新redis缓存失败 ，流水表状态已经更改 。status = {}",2);
                 }
             });
             throw new GunsException(GunsExceptionEnum.REDIS_ERROR);
         }
-        // 表示成功，更改流水表
-        mtimeStockLogMapper.updateStatusById(stockLogId, 1);
-        log.info("创建订单和更改redis缓存成功，流水表状态更改为1");
+        // 更改流水表
+        mtimeStockLogMapper.updateStatusById(stockLogId, StockLogStatus.ORDER_SUCCESS.getStatus());
+        log.info("创建订单和更改redis缓存成功，流水表状态更改为{}",StockLogStatus.ORDER_SUCCESS.getStatus());
         return true;
     }
 
@@ -222,6 +265,11 @@ public class PromoServiceImpl implements PromoService {
             Long rollbackValue = redisTemplate.opsForValue().increment(REDIS_MTIME_STOCK_PREFIX+promoId, Integer.valueOf(amount));
             log.info("redis回滚后的值：{}",rollbackValue);
             return false;
+        }
+
+        // 售罄标志
+        if(increment == 0){
+            redisTemplate.opsForValue().set(RedisPrefixConsistant.EMPTY_STOCK_PREFIX + promoId, RedisPrefixConsistant.EMPTY);
         }
         return true;
     }
@@ -250,7 +298,7 @@ public class PromoServiceImpl implements PromoService {
         mtimePromoOrder.setCinemaId(currentPromo.getCinemaId());
         mtimePromoOrder.setExchangeCode("abc");     // 随便写的
         mtimePromoOrder.setAmount(Integer.valueOf(amount));
-        mtimePromoOrder.setPrice(currentPromo.getPrice());
+        mtimePromoOrder.setPrice(currentPromo.getPrice().multiply(new BigDecimal(Integer.valueOf(amount))));
         mtimePromoOrder.setStartTime(currentPromo.getStartTime());
         mtimePromoOrder.setCreateTime(new Date());
         mtimePromoOrder.setEndTime(currentPromo.getEndTime());
@@ -259,20 +307,7 @@ public class PromoServiceImpl implements PromoService {
         return insert;
     }
 
-    @Override
-    public String initPromoStockLog(String promoId, String amount) {
-        // 初始化库存流水表
-        MtimeStockLog mtimeStockLog = new MtimeStockLog();
-        String stockLogId = UUID.randomUUID().toString().substring(0,10);
-        mtimeStockLog.setUuid(stockLogId);
-        mtimeStockLog.setPromoId(Integer.valueOf(promoId));
-        mtimeStockLog.setAmount(Integer.valueOf(amount));
-        // 0初始值，1成功，2失败
-        mtimeStockLog.setStatus(0);
-        boolean insert = mtimeStockLog.insert();
-        // 返回id
-        return stockLogId;
-    }
+
 
     /**
      * 使用分布式事务新建订单
@@ -287,5 +322,36 @@ public class PromoServiceImpl implements PromoService {
     public Boolean establishOrderInTransaction(String promoId, String amount, Integer userId,String stockLogId) {
         // 调用mq的方法
         return mqProducer.savePromoInfoInTransaction(promoId,amount,userId,stockLogId);
+    }
+
+    @Override
+    public String generateToken(String promoId,Integer userId) {
+        // 分三步
+        // 1. 先判断token数量是否足够
+        String amountKey = RedisPrefixConsistant.TOKEN_STOCK_PREFIX + promoId;
+        Long increment = redisTemplate.opsForValue().increment(amountKey, -1);
+        if(increment < 0){
+            log.info("商品的token被派完了，无法分配token");
+            return null;
+        }
+
+        // 2. 生成token值
+        String uuid = UUIDUtils.getUuid();
+
+
+        // 3. 存入redis并设置有效值
+        String key = String.format(RedisPrefixConsistant.USER_TOKEN_PREFIX,promoId,userId);
+        ActionInfo actionInfo = null;
+        if(redisTemplate.hasKey(key)){
+            actionInfo = (ActionInfo) redisTemplate.opsForValue().get(key);
+        } else {
+            actionInfo = new ActionInfo();
+        }
+        actionInfo.setHasBuy(RedisPrefixConsistant.NOT_BUY);
+        actionInfo.setPromoToken(uuid);
+        redisTemplate.opsForValue().set(key,actionInfo);
+        redisTemplate.expire(key,10, TimeUnit.MINUTES);
+
+        return uuid;
     }
 }

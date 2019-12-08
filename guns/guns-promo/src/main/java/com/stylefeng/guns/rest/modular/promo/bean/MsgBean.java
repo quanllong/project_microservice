@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class MsgBean {
     String promoId;
-    String amount;
+    Integer amount;
     Integer userId;
     String stockLogId;
 }

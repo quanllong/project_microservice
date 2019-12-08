@@ -16,4 +16,6 @@ public interface PromoService {
     String initPromoStockLog(String promoId, String amount);
 
     Boolean establishOrderInTransaction(String promoId, String amount, Integer userId,String stockLogId);
+
+    String generateToken(String promoId,Integer userId);
 }

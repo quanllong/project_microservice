@@ -4,6 +4,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSON;
 import com.stylefeng.guns.rest.common.persistence.dao.MtimeStockLogMapper;
 import com.stylefeng.guns.rest.common.persistence.model.MtimeStockLog;
+import com.stylefeng.guns.rest.consistent.StockLogStatus;
 import com.stylefeng.guns.rest.modular.promo.bean.ArgsBean;
 import com.stylefeng.guns.rest.modular.promo.bean.MsgBean;
 import com.stylefeng.guns.rest.service.PromoService;
@@ -102,16 +103,17 @@ public class MqProducer {
 
             @Override
             public LocalTransactionState checkLocalTransaction(MessageExt messageExt) {
+                // 这个方法什么时候被调用
                 byte[] body = messageExt.getBody();
                 String s = new String(body);
                 MsgBean msgBean = JSON.parseObject(s, MsgBean.class);
 
                 String stockLogId = msgBean.getStockLogId();
                 MtimeStockLog stockLog = mtimeStockLogMapper.selectById(stockLogId);
-                if(stockLog.getStatus() == 1){
+                if(stockLog.getStatus() == StockLogStatus.ORDER_SUCCESS.getStatus()){
                     return LocalTransactionState.COMMIT_MESSAGE;
                 }
-                if(stockLog.getStatus() == 2){
+                if(stockLog.getStatus() == StockLogStatus.ORDER_FAIL.getStatus()){
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
                 return LocalTransactionState.UNKNOW;
@@ -158,20 +160,19 @@ public class MqProducer {
 
     public Boolean savePromoInfoInTransaction(String promoId, String amount, Integer userId,String stockLogId) {
 
-        // 封装要发送的消息
+        // 封装要发送的消息，
+        // consumer的任务是更新数据库的库存，它需要promoId以及减去的amount而已
         MsgBean msgBean = new MsgBean();
-        msgBean.setAmount(amount);
+        msgBean.setAmount(Integer.valueOf(amount));
         msgBean.setPromoId(promoId);
-        msgBean.setUserId(userId);
-        msgBean.setStockLogId(stockLogId);
         String jsonString = JSON.toJSONString(msgBean);
 
         Message message = new Message(topic, jsonString.getBytes(Charset.forName("utf-8")));
 
         // 封装形参,提供给本地事务
         ArgsBean argsBean = new ArgsBean();
-        argsBean.setPromoId(promoId);
         argsBean.setAmount(amount);
+        argsBean.setPromoId(promoId);
         argsBean.setUserId(userId);
         argsBean.setStockLogId(stockLogId);
 
@@ -180,7 +181,7 @@ public class MqProducer {
             transactionSendResult = txProducer.sendMessageInTransaction(message,argsBean);
         } catch (MQClientException e) {
             e.printStackTrace();
-            log.info("发生了异常可能是内存不足");
+            log.info("发送消息异常，可能是内存不足");
         }
 
         if (transactionSendResult == null){

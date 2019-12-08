@@ -13,6 +13,7 @@ public class UUIDUtils {
      * @return
      */
     public static String getUuid(){
-        return UUID.randomUUID().toString().replace("-","");
+        // 取18位，quanllong
+        return UUID.randomUUID().toString().replace("-","").substring(0,18);
     }
 }

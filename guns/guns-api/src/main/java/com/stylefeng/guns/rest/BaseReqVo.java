@@ -9,6 +9,7 @@ public class BaseReqVo<T> implements Serializable {
     private static final long serialVersionUID = 8019703345977793521L;
     Object data;    // 这里不用泛型了，用Object。quanllong
     String msg;
+    String anotherMsg;  // 用来提示额外的信息
     Integer nowPage;
     Integer totalPage;
     Integer status;
