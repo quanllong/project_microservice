@@ -307,7 +307,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderVO.setSeatsName(moocOrderT.getSeatsName().replaceAll(","," "));
         orderVO.setOrderPrice(String.valueOf(moocOrderT.getOrderPrice()));
-        orderVO.setOrderTimestamp(String.valueOf(moocOrderT.getOrderTime().getTime()));  // 订单时间戳
+        orderVO.setOrderTimestamp(moocOrderT.getOrderTime().getTime() / 1000);  // 订单时间戳
         // 0-待支付,1-已支付,2-已关闭
         switch (moocOrderT.getOrderStatus()){
             case 0:

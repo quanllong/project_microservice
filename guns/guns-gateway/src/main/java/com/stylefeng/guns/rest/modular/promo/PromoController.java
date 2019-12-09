@@ -85,12 +85,27 @@ public class PromoController {
     @RequestMapping("getPromo")
     public PromoVO getPromo(PromoParams promoParams, HttpServletRequest request){
         // 不需登录
-        PromoVO promoVO = promoService.getPromoInfo(promoParams);
+        // 先尝试从redis中取出
+        PromoVO promoVO = null;
+        String key = "getPromo";
+        promoVO = (PromoVO) redisTemplate.opsForValue().get(key);
+        if(promoVO != null){
+            System.out.println("读取redis");
+            return promoVO;
+        }
+
+        // 查数据库
+        promoVO = promoService.getPromoInfo(promoParams);
+
+        redisTemplate.opsForValue().set(key,promoVO);
+        redisTemplate.expire(key,20,TimeUnit.MINUTES);
+        System.out.println("读取redis");
         return promoVO;
     }
 
     /*
-    /promo/generateToken
+    Request URL: http://localhost/promo/generateToken?promoId=3
+    Request Method: GET
     promoId /*秒杀活动id,必须传
      */
     @RequestMapping("generateToken")
@@ -119,23 +134,33 @@ public class PromoController {
         if(redisTemplate.hasKey(key)){
             actionInfo = (ActionInfo) redisTemplate.opsForValue().get(key);
 
+            // 限制同一用户对同一商品重复下单
             if(RedisPrefixConsistant.HAS_BUY.equals(actionInfo.getHasBuy())){
-                return BaseReqVo.fail("你已购买过该商品,请选择其它商品~");
+                BaseReqVo reqVo = BaseReqVo.ok();
+                reqVo.setMsg("你已购买过该商品,请选择其它商品~");
+                return reqVo;
             } else {
                 BaseReqVo<Object> reqVo = new BaseReqVo<>();
                 reqVo.setMsg(actionInfo.getPromoToken());
                 reqVo.setAnotherMsg("已经取得购买资格，请速速下单吧~~");
                 return reqVo;
             }
+
+            // 不做限制
+//            BaseReqVo<Object> reqVo = new BaseReqVo<>();
+//            reqVo.setMsg(actionInfo.getPromoToken());
+//            reqVo.setAnotherMsg("已经取得购买资格，请速速下单吧~~");
+//            return reqVo;
         }
 
         String promoToken = promoService.generateToken(promoId,userId);
 
         // 存入loginToken
-        if(actionInfo != null){
+        if(promoToken != null){
             String loginToken = tokenUtils.getFrontToken(request);
-            actionInfo.setLoginToken(loginToken);
-            redisTemplate.opsForValue().set(key,actionInfo);
+            ActionInfo newActionInfo  = (ActionInfo) redisTemplate.opsForValue().get(key);
+            newActionInfo.setLoginToken(loginToken);
+            redisTemplate.opsForValue().set(key,newActionInfo);
         }
 
         if(StringUtils.isBlank(promoToken)){
@@ -180,18 +205,18 @@ public class PromoController {
 
         Boolean aBoolean1 = redisTemplate.hasKey(key);
         if(!aBoolean1){
-            return BaseReqVo.fail("用户令牌不存在或已过期");
+            return BaseReqVo.fail("秒杀令牌不存在或已过期");
         }
         ActionInfo actionInfo = null;
         Object o = redisTemplate.opsForValue().get(key);
         if(o instanceof ActionInfo){
-            System.out.println("77777");
+            actionInfo = (ActionInfo) o;
         }
-        actionInfo = (ActionInfo) o;
 
         if(RedisPrefixConsistant.HAS_BUY.equals(actionInfo.getHasBuy())){
             return BaseReqVo.fail("您已秒杀过，请选择其它商品");
         }
+
         if(!promoToken.equals(actionInfo.getPromoToken())){
             return BaseReqVo.fail("秒杀令牌不合法");
         }

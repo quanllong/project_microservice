@@ -16,7 +16,7 @@ public class RedisPrefixConsistant {
     public static String USER_TOKEN_PREFIX = "user_promoId_%s_userId_%s";
 
     //秒杀令牌数量限制缓存前缀，  令牌数量
-    public static String TOKEN_STOCK_PREFIX = "promo_stock_amount_limit_";
+    public static String TOKEN_STOCK_PREFIX = "promo_token_limit_";
 
     // 买成功
     public static final String HAS_BUY = "done" ;

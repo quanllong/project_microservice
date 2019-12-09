@@ -63,6 +63,8 @@ public class AuthFilter extends OncePerRequestFilter {
         String authToken = null;
         if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
             authToken = requestHeader.substring(7);
+            // 项目展示，先写成固定的
+            // authToken = "eyJhbGciOiJIUzUxMiJ9.eyJyYW5kb21LZXkiOiJxaG5jdGwiLCJzdWIiOiJ1c2VyMSIsImV4cCI6MTU3NjQxOTQwMCwiaWF0IjoxNTc1ODE0NjAwfQ.iyL6LXl_07YOkaamBPK2ddUmJFSk7A9R9VUnQDDK8Ia_NNw2MBuXI9i6ymo4_NSa70XzKAc4wXwdM-Io5F411A";
             try {
                 Object o =  redisTemplate.opsForValue().get(authToken);
                 if (o == null) {

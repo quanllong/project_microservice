@@ -10,6 +10,7 @@ import com.stylefeng.guns.rest.service.vo.payvo.PayInfo;
 import com.stylefeng.guns.rest.service.vo.payvo.PayResultVO;
 import com.stylefeng.guns.rest.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +25,8 @@ public class PayController {
     PayService payService;
     @Autowired
     TokenUtils tokenUtils;
-
+    @Autowired
+    RedisTemplate redisTemplate;
     /*
     Request URL: http://localhost/order/getPayInfo?orderId=f2314e500a5547419cf3
     Request Method: POST
@@ -32,6 +34,13 @@ public class PayController {
      */
     @RequestMapping("getPayInfo")
     public BaseReqVo getPayInfo(String orderId){
+
+        if(redisTemplate.hasKey(orderId)){
+            BaseReqVo<Object> reqVo = (BaseReqVo<Object>) redisTemplate.opsForValue().get(orderId);
+            reqVo.setMsg("二维码已生成，请扫码支付");
+            return reqVo;
+        }
+
         PayInfo payInfo = payService.getQRCodeAddress(orderId);
         if(payInfo != null){
             HashMap<String, Object> map = new HashMap<>();
@@ -41,6 +50,10 @@ public class PayController {
             reqVo.setImgPre(payInfo.getImgPre());
             reqVo.setData(map);
             reqVo.setStatus(0);
+
+            // 存进缓存
+            redisTemplate.opsForValue().set(orderId,reqVo);
+
             return reqVo;
         }
         BaseReqVo<String> reqVo = new BaseReqVo<>();
@@ -69,6 +82,12 @@ public class PayController {
         Integer userId = mtimeUserVO.getUuid();
 
         System.out.println("当前查询次数：" + tryNums);
+        if(Integer.valueOf(tryNums) == 0){
+            data.put("orderStatus",999);
+            data.put("orderMsg","超时未支付");
+            payResultVO.setData(data);
+            return payResultVO;
+        }
 
         // 查询是否支付
         int status1 = payService.checkPayStatus(orderId, userId);
