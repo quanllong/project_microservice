@@ -15,6 +15,7 @@ import com.stylefeng.guns.rest.common.persistence.model.MtimePromoOrder;
 import com.stylefeng.guns.rest.common.persistence.model.MtimePromoStock;
 import com.stylefeng.guns.rest.common.persistence.model.MtimeStockLog;
 import com.stylefeng.guns.rest.consistant.RedisPrefixConsistant;
+import com.stylefeng.guns.rest.consistant.RedisStatus;
 import com.stylefeng.guns.rest.consistent.StockLogStatus;
 import com.stylefeng.guns.rest.modular.promo.bean.Stock;
 import com.stylefeng.guns.rest.mq.MqProducer;
@@ -44,11 +45,7 @@ import java.util.concurrent.TimeUnit;
 @Service(interfaceClass = PromoService.class)
 public class PromoServiceImpl implements PromoService {
 
-    // 存放mtime_promo_stock表的数据
-    private static final String REDIS_MTIME_STOCK_PREFIX = "mtime_promo_stock_";
 
-    // 存放mtime_promo表的数据
-    private static final String REDIS_MTIME_PROMO_PREFIX = "mtime_promo_";
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -86,7 +83,7 @@ public class PromoServiceImpl implements PromoService {
             Integer stock = promoStock.getStock();  // 值必须是整数
 
             // 存商品库存redis
-            redisTemplate.opsForValue().set(REDIS_MTIME_STOCK_PREFIX + promoId,stock);
+            redisTemplate.opsForValue().set(RedisStatus.REDIS_MTIME_STOCK_PREFIX + promoId,stock);
 
 
             // 设置商品令牌数
@@ -111,20 +108,23 @@ public class PromoServiceImpl implements PromoService {
      */
     @Override
     public PromoVO getPromoInfo(PromoParams promoParams) {
-        // 先尝试从缓存中取
-        //
 
         // 查出影院信息,这里优化为联合查询
         List<PromoData> promoDataList = mtimePromoMapper.queryPromoDataByCinemaId(null,null);
+
         for (PromoData promoData : promoDataList) {
 
-            // 从redis中取出库存
             String promoId = String.valueOf(promoData.getUuid());
-            int stock = getStockFromRedis(promoId);
-            promoData.setStock(stock);    // (promoId，stock)
+
+            // 读数据库
+            MtimePromoStock mtimePromoStock = mtimePromoStockMapper.queryStockByPromoId(promoId);
+            promoData.setStock(mtimePromoStock.getStock());
+
+            // 存一个promoId
+            promoData.setPromoId(promoId);
 
             // 顺手把秒杀信息加进redis，因为创建订单还要用到这些信息
-            redisTemplate.opsForValue().set(REDIS_MTIME_PROMO_PREFIX + promoId,promoData);
+            redisTemplate.opsForValue().set(RedisStatus.REDIS_MTIME_PROMO_PREFIX + promoId,promoData);
         }
 
         PromoVO promoVO = new PromoVO();
@@ -142,28 +142,28 @@ public class PromoServiceImpl implements PromoService {
         return promoVO;
     }
 
-    /**
-     * 从reids中读库存
-     * 如果读出stock为null，返回0
-     * @param promoId
-     * @return
-     */
-    private int getStockFromRedis(String promoId) {
-        Object o = redisTemplate.opsForValue().get(REDIS_MTIME_STOCK_PREFIX + promoId);
-        // 如果为null,就直接查数据库
-        if(o == null){
-            MtimePromoStock mtimePromoStock = mtimePromoStockMapper.queryStockByPromoId(promoId);
-            return mtimePromoStock.getStock();
-        }
-        if(o instanceof String){
-            String stock = (String) o;
-            return Integer.valueOf(stock);
-        }
-        if(o instanceof Integer){
-            return (Integer) o;
-        }
-        return 0;
-    }
+//    /**
+//     * 从reids中读库存
+//     * 如果读出stock为null，返回0
+//     * @param promoId
+//     * @return
+//     */
+//    private int getStockFromRedis(String promoId) {
+//        Object o = redisTemplate.opsForValue().get(RedisStatus.REDIS_MTIME_STOCK_PREFIX + promoId);
+//        // 如果为null,就直接查数据库
+//        if(o == null){
+//            MtimePromoStock mtimePromoStock = mtimePromoStockMapper.queryStockByPromoId(promoId);
+//            return mtimePromoStock.getStock();
+//        }
+//        if(o instanceof String){
+//            String stock = (String) o;
+//            return Integer.valueOf(stock);
+//        }
+//        if(o instanceof Integer){
+//            return (Integer) o;
+//        }
+//        return 0;
+//    }
 
     /**
      * 生成订单前，先在库存流水表创建一条记录
@@ -197,15 +197,6 @@ public class PromoServiceImpl implements PromoService {
     @Override
     public boolean establishOrder(String promoId, String amount, Integer userId,String stockLogId) {
 
-        // 下单前先检查库存还有没有
-//        Integer stock = (Integer) redisTemplate.opsForValue().get(REDIS_MTIME_STOCK_PREFIX + promoId);
-//        if(stock == null){
-//            return false;  // 未知异常
-//        }
-//        if(stock < Integer.valueOf(amount)){
-//            return false;
-//        }
-
         // 保存订单信息（本地事务）
         /*boolean flag = saveOrderInfo(promoId, amount, userId,stockLogId);
         if(!flag){
@@ -238,6 +229,8 @@ public class PromoServiceImpl implements PromoService {
             throw new GunsException(GunsExceptionEnum.SERVER_ERROR);
         }
 
+
+
         // 更改redis缓存
         boolean update = updateRedisStock(promoId,amount);
         if(!update){
@@ -258,11 +251,11 @@ public class PromoServiceImpl implements PromoService {
 
     private boolean updateRedisStock(String promoId, String amount) {
         // 扣减要一步到位
-        Long increment = redisTemplate.opsForValue().increment(REDIS_MTIME_STOCK_PREFIX+promoId, Integer.valueOf(amount) * -1);
+        Long increment = redisTemplate.opsForValue().increment(RedisStatus.REDIS_MTIME_STOCK_PREFIX+promoId, Integer.valueOf(amount) * -1);
         if(increment < 0){
             log.info("redis库存不足,扣减失败 promoId={}",promoId);
             // 手动回滚redis
-            Long rollbackValue = redisTemplate.opsForValue().increment(REDIS_MTIME_STOCK_PREFIX+promoId, Integer.valueOf(amount));
+            Long rollbackValue = redisTemplate.opsForValue().increment(RedisStatus.REDIS_MTIME_STOCK_PREFIX+promoId, Integer.valueOf(amount));
             log.info("redis回滚后的值：{}",rollbackValue);
             return false;
         }
@@ -289,7 +282,7 @@ public class PromoServiceImpl implements PromoService {
         mtimePromoOrder.setUserId(userId);
 
         // 先尝试从redis中取出PromoData,如果没有就去查数据库
-        PromoData currentPromo = (PromoData) redisTemplate.opsForValue().get(REDIS_MTIME_PROMO_PREFIX + promoId);
+        PromoData currentPromo = (PromoData) redisTemplate.opsForValue().get(RedisStatus.REDIS_MTIME_PROMO_PREFIX + promoId);
         if(currentPromo == null){
             List<PromoData> promoData = mtimePromoMapper.queryPromoDataByCinemaId(null, promoId);
             currentPromo = promoData.get(0);

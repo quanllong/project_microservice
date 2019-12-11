@@ -239,6 +239,7 @@ public class OrderServiceImpl implements OrderService {
         String  key = String.format(RedisPrefixConsistant.CURRENT_ORDER,userId);
         OrderPayStatus orderPayStatus = new OrderPayStatus(orderId, OrderStatus.NOT_PAY.getCode());
         redisTemplate.opsForValue().set(key,orderPayStatus);  // (userId,orderPayStatus)
+        log.info("成功保存订单到redis,orderId:{},userId{}",orderId,userId);
 
         return orderVO;
     }

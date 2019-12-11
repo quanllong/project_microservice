@@ -20,7 +20,7 @@ public interface MtimePromoStockMapper extends BaseMapper<MtimePromoStock> {
 
     int updateStock(@Param( value = "promoId") String promoId, @Param("amount") int amount);
 
-    @Select("select stock from mtime_promo_stock where promoId = #{promoId} ")
+    @Select("select stock from mtime_promo_stock where promo_Id = #{promoId} ")
     MtimePromoStock queryStockByPromoId(@Param("promoId") String promoId);
 
     List<MtimePromoStock> selectStockByCinemaIdAndPromoId(@Param("cinemaId") String cinemaId,

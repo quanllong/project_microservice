@@ -1,4 +1,4 @@
-package com.alipay.demo.trade.config;
+package com.stylefeng.guns.rest.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

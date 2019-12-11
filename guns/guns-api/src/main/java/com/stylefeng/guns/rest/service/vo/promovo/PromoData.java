@@ -39,4 +39,7 @@ public class PromoData implements Serializable {
         private int stock;
         private int uuid;
 
+        // 存一个promoId
+        private String promoId;
+
 }

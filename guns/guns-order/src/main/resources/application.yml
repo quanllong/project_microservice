@@ -53,4 +53,4 @@ mq:
   producer-group: general-producer-group
   consumer-group: general-consumer-group
   transaction-producer-group: transactionProducerGroup
-  time-level: 9
+  time-level: 7

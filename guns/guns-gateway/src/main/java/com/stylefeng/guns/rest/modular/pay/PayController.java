@@ -8,7 +8,9 @@ import com.stylefeng.guns.rest.service.PayService;
 import com.stylefeng.guns.rest.service.vo.MtimeUserVO;
 import com.stylefeng.guns.rest.service.vo.payvo.PayInfo;
 import com.stylefeng.guns.rest.service.vo.payvo.PayResultVO;
+
 import com.stylefeng.guns.rest.util.TokenUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +25,15 @@ import java.util.HashMap;
 public class PayController {
     @Reference(interfaceClass = PayService.class,check = false)
     PayService payService;
+
     @Autowired
     TokenUtils tokenUtils;
     @Autowired
     RedisTemplate redisTemplate;
+
+    @Reference(interfaceClass = OrderService.class,check = false)
+    OrderService orderService;
+
     /*
     Request URL: http://localhost/order/getPayInfo?orderId=f2314e500a5547419cf3
     Request Method: POST
@@ -35,11 +42,24 @@ public class PayController {
     @RequestMapping("getPayInfo")
     public BaseReqVo getPayInfo(String orderId){
 
-        if(redisTemplate.hasKey(orderId)){
+
+        if(redisTemplate.hasKey(orderId)) {
             BaseReqVo<Object> reqVo = (BaseReqVo<Object>) redisTemplate.opsForValue().get(orderId);
+            reqVo.setStatus(0);
             reqVo.setMsg("二维码已生成，请扫码支付");
             return reqVo;
         }
+        // 避免重复生成二维码
+//        String status = (String) redisTemplate.opsForHash().get("orderId--status", orderId);
+//        if(status != null ){
+//            if("ok".equals(status)){
+//                BaseReqVo<Object> reqVo = new BaseReqVo<>();
+//                reqVo.setMsg("二维码已生成，请使用支付宝扫码支付");
+//                reqVo.setStatus(1);
+//                return reqVo;
+//            }
+//
+//        }
 
         PayInfo payInfo = payService.getQRCodeAddress(orderId);
         if(payInfo != null){
@@ -51,8 +71,12 @@ public class PayController {
             reqVo.setData(map);
             reqVo.setStatus(0);
 
+
             // 存进缓存
             redisTemplate.opsForValue().set(orderId,reqVo);
+
+            // 把状态存入redis,1表示已经生成过二维码
+//            redisTemplate.opsForHash().put("orderId--status",orderId,"ok");
 
             return reqVo;
         }
