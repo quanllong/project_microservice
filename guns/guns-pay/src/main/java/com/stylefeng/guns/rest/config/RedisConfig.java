@@ -1,4 +1,4 @@
-package com.alipay.demo.trade.config;
+package com.stylefeng.guns.rest.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -22,11 +22,13 @@ public class RedisConfig {
         return new Gson();
     }
 
+    // 普通的redis的java客户端，支持5种形式的value。不支持直接存对象，需要把对象占位json字符串再存。
     @Bean
     public Jedis jedis(){
         return new Jedis("127.0.0.1",6379);
     }
 
+    // Springboot提供的redis的java客户端，支持存放对象。但是需要定制化，才避免key出现乱码
     @Bean
     public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
         RedisTemplate<Object, Object> template = new RedisTemplate();

@@ -59,12 +59,15 @@ public class AuthFilter extends OncePerRequestFilter {
         }*/
 
         /*拦截url:需要验证token*/
-        final String requestHeader = request.getHeader(jwtProperties.getHeader());
+        // final String requestHeader = request.getHeader(jwtProperties.getHeader());
+
+        String requestHeader = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJyYW5kb21LZXkiOiI3ZmpvaGsiLCJzdWIiOiJ1c2VyMSIsImV4cCI6MTU3OTI1MDM2NywiaWF0IjoxNTc4NjQ1NTY3fQ.XKll6TgeMyf9uecCKrFHTpAc0GxwLkh5GWvloyiQuvSWb3fggkCKFuLgTVkbtaEZLOpc-LIliR3GKu9PeeGj1w";
+
         String authToken = null;
         if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
+
             authToken = requestHeader.substring(7);
-            // 项目展示，先写成固定的
-            // authToken = "eyJhbGciOiJIUzUxMiJ9.eyJyYW5kb21LZXkiOiJxaG5jdGwiLCJzdWIiOiJ1c2VyMSIsImV4cCI6MTU3NjQxOTQwMCwiaWF0IjoxNTc1ODE0NjAwfQ.iyL6LXl_07YOkaamBPK2ddUmJFSk7A9R9VUnQDDK8Ia_NNw2MBuXI9i6ymo4_NSa70XzKAc4wXwdM-Io5F411A";
+
             try {
                 Object o =  redisTemplate.opsForValue().get(authToken);
                 if (o == null) {

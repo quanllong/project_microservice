@@ -79,6 +79,7 @@ public class Consumer {
                 try{
                     orderId = (String) hashMap.get("orderId");
                     userId = (Integer) hashMap.get("userId");
+                    log.info("消费消息：orderId:{}, userId:{}",orderId,userId);
                 } catch (Exception e){
                     e.printStackTrace();
                     log.info("consumer类型转换异常");
@@ -87,6 +88,7 @@ public class Consumer {
                 // 检查订单是否已支付
                 Boolean flag = orderService.checkOrdinaryOrderStatus(orderId);
                 if(!flag){
+                    // 未支付
                     int update = orderService.updateOrderStatus(orderId, OrderStatus.CLOSED.getCode());
                     if(update == 1){
                         log.info("订单已关闭，orderId:{}",orderId);
@@ -95,13 +97,17 @@ public class Consumer {
                     String key = String.format(RedisPrefixConsistant.CURRENT_ORDER,userId);
                     OrderPayStatus orderPayStatus = new OrderPayStatus(orderId, OrderStatus.CLOSED.getCode());
                     redisTemplate.opsForValue().set(key,orderPayStatus);
+
+                } else {
+
+                    // 订单已支付
+                    log.info("订单已支付，orderId:{}",orderId);
+                    String key = String.format(RedisPrefixConsistant.CURRENT_ORDER,userId);
+                    OrderPayStatus orderPayStatus = new OrderPayStatus(orderId, OrderStatus.PAY_SUCCESS.getCode());
+                    redisTemplate.opsForValue().setIfAbsent(key,orderPayStatus);
                 }
 
-                //有重试机制 16次
-
-                String key = String.format(RedisPrefixConsistant.CURRENT_ORDER,userId);
-                OrderPayStatus orderPayStatus = new OrderPayStatus(orderId, OrderStatus.PAY_SUCCESS.getCode());
-                redisTemplate.opsForValue().set(key,orderPayStatus);
+                //有重试机制 16次，这个用在哪里？
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
         });

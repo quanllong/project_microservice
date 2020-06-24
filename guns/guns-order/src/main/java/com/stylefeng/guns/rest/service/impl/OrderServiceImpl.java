@@ -220,6 +220,7 @@ public class OrderServiceImpl implements OrderService {
         String orderId = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 20);
         moocOrderT.setUuid(orderId);
 
+        // 订单入库
         boolean insert = moocOrderT.insert();   // 竟然有这个方法，暂时不需要MoocOrderTMapper
 
         OrderVO orderVO = null;
@@ -235,10 +236,11 @@ public class OrderServiceImpl implements OrderService {
             log.info("发送延时消息成功，orderId:{}",orderId);
         }
 
-        // 将当前用户的订单存进redis
+        // 将当前用户的订单存进redis，一是在OrderController判断是否有未支付订单，
         String  key = String.format(RedisPrefixConsistant.CURRENT_ORDER,userId);
         OrderPayStatus orderPayStatus = new OrderPayStatus(orderId, OrderStatus.NOT_PAY.getCode());
         redisTemplate.opsForValue().set(key,orderPayStatus);  // (userId,orderPayStatus)
+        log.info("成功保存订单到redis, orderId:{}, userId:{}",orderId,userId);
 
         return orderVO;
     }

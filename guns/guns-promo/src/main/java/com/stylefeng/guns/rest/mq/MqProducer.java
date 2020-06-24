@@ -75,9 +75,6 @@ public class MqProducer {
         txProducer.setTransactionListener(new TransactionListener() {
             /**
              * 监听到发送消息成功就会执行本地事务
-             * @param message
-             * @param
-             * @return
              */
             @Override
             public LocalTransactionState executeLocalTransaction(Message message, Object args) {
@@ -121,7 +118,7 @@ public class MqProducer {
         });
     }
 
-    public Boolean decreaseStock(Integer promoId, Integer stock){
+    /*public Boolean decreaseStock(Integer promoId, Integer stock){
 
         HashMap<String, Object> hashMap = new HashMap<>();
 
@@ -155,7 +152,7 @@ public class MqProducer {
             return false;
         }
 
-    }
+    }*/
 
 
     public Boolean savePromoInfoInTransaction(String promoId, String amount, Integer userId,String stockLogId) {
