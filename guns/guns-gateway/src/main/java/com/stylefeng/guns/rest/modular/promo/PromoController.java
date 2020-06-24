@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,30 +54,41 @@ public class PromoController {
     @PostConstruct
     public void init(){
         // 初始化一个固定数量大小的线程池
-        executorService = Executors.newFixedThreadPool(100);
+        executorService = Executors.newFixedThreadPool(20);
 
         // 固定每秒产生10个令牌
-        // rateLimiter.setRate(100);
-        rateLimiter = RateLimiter.create(10);
+        rateLimiter = RateLimiter.create(300);
     }
 
     /*
     Request URL: http://115.29.141.32/promo/publishPromoStock
     Request Method: GET
-    由前端调用
+    前端首先调用publishPromoStock,后台需要的操作是把数据库的库存发布到redis缓存中
+    紧接着前端调用getPromo
+    点击马上抢后，调用两个接口
+    先调用generateToken，返回一个token令牌
+    最后调用createOrder
+    createOrder执行成功后会再调用getPromo接口
      */
-    @RequestMapping("publishPromoStock")
+    @RequestMapping(value = "publishPromoStock")
     public BaseReqVo publishPromoStock(String cinemaId){
         String tag = (String) redisTemplate.opsForValue().get(PUBLISH_STOCK_REIDS);
         if(tag != null){
             return BaseReqVo.ok("已经发布成功，无需重复");
         }
+
+        // 调用业务层的接口将库存信息发布到缓存中
         boolean status = promoService.pushStockToRedis(cinemaId);
+
         if(!status){
             return BaseReqVo.fail("发布失败");
         }
+
         redisTemplate.opsForValue().set(PUBLISH_STOCK_REIDS,"ok");
+
+        // 设置商品库存的过期时间，一旦过期，需要重新访问数据库去获取。目的是及时将数据库的信息更新到redis中
         redisTemplate.expire(PUBLISH_STOCK_REIDS,30, TimeUnit.SECONDS); // 30s
+
         return BaseReqVo.ok("发布成功");
     }
 
@@ -87,12 +99,13 @@ public class PromoController {
     @RequestMapping("getPromo")
     public PromoVO getPromo(PromoParams promoParams, HttpServletRequest request){
 
-        // 先尝试从redis中取出
-        if(redisTemplate.hasKey(RedisStatus.PROMOID_LIST)){
+        // 先尝试从redis中取出页面信息
+        if(redisTemplate.hasKey(RedisStatus.PROMOVO)){
 
             PromoVO promoVO = (PromoVO) redisTemplate.opsForValue().get(RedisStatus.PROMOVO);
             List<PromoData> promoDatas = promoVO.getData();
 
+            // 从redis中读取最新的库存信息,并更新到要返回的的VO类中
             for (PromoData promoData : promoDatas) {
                 Integer amount = (Integer) redisTemplate.opsForValue().get(RedisStatus.REDIS_MTIME_STOCK_PREFIX + promoData.getPromoId());
                 promoData.setStock(amount);
@@ -113,7 +126,8 @@ public class PromoController {
     /*
     Request URL: http://localhost/promo/generateToken?promoId=3
     Request Method: GET
-    promoId /*秒杀活动id,必须传
+
+    promoId  秒杀活动id,必须传
      */
     @RequestMapping("generateToken")
     public BaseReqVo generateToken(@RequestParam(required = true,name = "promoId") String promoId,
@@ -125,13 +139,13 @@ public class PromoController {
             return BaseReqVo.fail("该商品已售罄");
         }
 
-        // 取出userId，生成的token必须与userId关联。（开发时暂不打开）
+        // 取出userId，生成的token必须与userId关联
         MtimeUserVO mtimeUserVO = tokenUtils.parseRequest(request);
         if(mtimeUserVO == null){
             return BaseReqVo.fail("取出用户信息失败，请重新登录");
         }
         Integer userId = mtimeUserVO.getUuid();
-        // Integer userId = 1; // 先写成固定的
+        // Integer userId = 1; // 开发时写成固定的
 
         String key = String.format(RedisPrefixConsistant.USER_TOKEN_PREFIX,promoId,userId);
 
@@ -154,15 +168,8 @@ public class PromoController {
 
         }
 
+        // 获取令牌
         String promoToken = promoService.generateToken(promoId,userId);
-
-        // 存入loginToken
-//        if(promoToken != null){
-//            String loginToken = tokenUtils.getFrontToken(request);
-//            ActionInfo newActionInfo  = (ActionInfo) redisTemplate.opsForValue().get(key);
-//            newActionInfo.setLoginToken(loginToken);
-//            redisTemplate.opsForValue().set(key,newActionInfo);
-//        }
 
         if(StringUtils.isBlank(promoToken)){
             return BaseReqVo.fail("获取令牌失败");
@@ -173,8 +180,8 @@ public class PromoController {
 
 
     /*
-    http://localhost/promo/createOrder?promoId=1&amount=1
-    /promo/createOrder
+    Request URL: http://localhost/promo/createOrder?promoId=3&amount=1&promoToken=65640edf716845358b
+    Request Method: POST
      */
     @RequestMapping("createOrder")
     public BaseReqVo createOrder(@RequestParam(required = true,name = "promoId") String promoId,
@@ -195,7 +202,7 @@ public class PromoController {
         Integer userId = mtimeUserVO.getUuid();
 //         Integer userId = 1;
 
-        // 参数校验
+        // 校验下单数量
         if(Integer.valueOf(amount) < 0 || Integer.valueOf(amount) > 5){
             return BaseReqVo.fail("amount不合法");
         }
@@ -203,10 +210,10 @@ public class PromoController {
         // 判断权限token,避免用户点击同一链接对同一个商品重复下单
         String key = String.format(RedisPrefixConsistant.USER_TOKEN_PREFIX, promoId, userId);
 
-        Boolean aBoolean1 = redisTemplate.hasKey(key);
-        if(!aBoolean1){
+        if(!redisTemplate.hasKey(key)){
             return BaseReqVo.fail("秒杀令牌不存在或已过期");
         }
+
         ActionInfo actionInfo = null;
         Object o = redisTemplate.opsForValue().get(key);
         if(o instanceof ActionInfo){
@@ -217,6 +224,7 @@ public class PromoController {
 //            return BaseReqVo.fail("您已秒杀过，请选择其它商品");
 //        }
 
+        // 校验前端传来的token与缓存中的token
         if(!promoToken.equals(actionInfo.getPromoToken())){
             return BaseReqVo.fail("秒杀令牌不合法");
         }

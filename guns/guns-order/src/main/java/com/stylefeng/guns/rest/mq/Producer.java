@@ -56,6 +56,7 @@ public class Producer {
         hashMap.put("userId",userId);
         String body = JSON.toJSONString(hashMap);
 
+        // 要指定发送到哪一个topic
         Message message = new Message(topic, body.getBytes(Charset.forName("utf-8")));
 
         // 延时的级别为3 对应的时间为10s 就是发送后延时10S在把消息投递出去

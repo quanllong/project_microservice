@@ -65,7 +65,7 @@ public class AuthController {
                 List<MtimeUserVO> list = mtimeUserTService.selectUserAndPwd(userName,password);
                 MtimeUserVO mtimeUserVO = list.get(0);
                 redisTemplate.opsForValue().set(token, mtimeUserVO);
-                redisTemplate.expire(token, 86400, TimeUnit.SECONDS);/*有效时间是1天*/
+                redisTemplate.expire(token, 24, TimeUnit.HOURS);/*有效时间是1天*/
 
                 BaseResponseVO baseResponseVO = new BaseResponseVO();
                 Map<String,Object> data = new HashMap<>();

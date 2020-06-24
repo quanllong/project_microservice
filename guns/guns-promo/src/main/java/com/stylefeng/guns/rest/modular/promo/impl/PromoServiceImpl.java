@@ -32,6 +32,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import redis.clients.jedis.Jedis;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -46,9 +47,10 @@ import java.util.concurrent.TimeUnit;
 public class PromoServiceImpl implements PromoService {
 
 
-
     @Autowired
     RedisTemplate redisTemplate;
+    @Autowired
+    Jedis jedis;
     @Autowired
     MqProducer mqProducer;
     @Autowired
@@ -85,10 +87,8 @@ public class PromoServiceImpl implements PromoService {
             // 存商品库存redis
             redisTemplate.opsForValue().set(RedisStatus.REDIS_MTIME_STOCK_PREFIX + promoId,stock);
 
-
             // 设置商品令牌数
             String amountKey = RedisPrefixConsistant.TOKEN_STOCK_PREFIX + promoId;
-            // String amountValue = String.valueOf(Integer.valueOf(stock) * 5);
             Integer amountValue = Integer.valueOf(stock) * 5;
             redisTemplate.opsForValue().set(amountKey,amountValue);
 
@@ -216,6 +216,7 @@ public class PromoServiceImpl implements PromoService {
     public boolean saveOrderInfo(String promoId, String amount, Integer userId,String stockLogId){
         // 订单入库
         boolean insertPromoOrder = insertPromoOrder(promoId, amount, userId);
+
         if (! insertPromoOrder){
             log.info("订单入库失败");
             // 更新流水表
@@ -230,19 +231,21 @@ public class PromoServiceImpl implements PromoService {
         }
 
 
-
         // 更改redis缓存
         boolean update = updateRedisStock(promoId,amount);
+
         if(!update){
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     int status = mtimeStockLogMapper.updateStatusById(stockLogId, StockLogStatus.ORDER_FAIL.getStatus());   // 能返回1吗
-                    log.info("更新redis缓存失败 ，流水表状态已经更改 。status = {}",2);
+                    log.info("更新redis缓存失败 ，流水表状态已经更改 。status = {}",StockLogStatus.ORDER_FAIL.getStatus());
                 }
             });
             throw new GunsException(GunsExceptionEnum.REDIS_ERROR);
         }
+
+
         // 更改流水表
         mtimeStockLogMapper.updateStatusById(stockLogId, StockLogStatus.ORDER_SUCCESS.getStatus());
         log.info("创建订单和更改redis缓存成功，流水表状态更改为{}",StockLogStatus.ORDER_SUCCESS.getStatus());
@@ -250,6 +253,7 @@ public class PromoServiceImpl implements PromoService {
     }
 
     private boolean updateRedisStock(String promoId, String amount) {
+
         // 扣减要一步到位
         Long increment = redisTemplate.opsForValue().increment(RedisStatus.REDIS_MTIME_STOCK_PREFIX+promoId, Integer.valueOf(amount) * -1);
         if(increment < 0){

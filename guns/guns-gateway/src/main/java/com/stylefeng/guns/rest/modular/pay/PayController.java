@@ -42,26 +42,16 @@ public class PayController {
     @RequestMapping("getPayInfo")
     public BaseReqVo getPayInfo(String orderId){
 
-
+        // 判断是否已经生成过二维码（幂等性）
         if(redisTemplate.hasKey(orderId)) {
             BaseReqVo<Object> reqVo = (BaseReqVo<Object>) redisTemplate.opsForValue().get(orderId);
             reqVo.setStatus(0);
             reqVo.setMsg("二维码已生成，请扫码支付");
             return reqVo;
         }
-        // 避免重复生成二维码
-//        String status = (String) redisTemplate.opsForHash().get("orderId--status", orderId);
-//        if(status != null ){
-//            if("ok".equals(status)){
-//                BaseReqVo<Object> reqVo = new BaseReqVo<>();
-//                reqVo.setMsg("二维码已生成，请使用支付宝扫码支付");
-//                reqVo.setStatus(1);
-//                return reqVo;
-//            }
-//
-//        }
 
         PayInfo payInfo = payService.getQRCodeAddress(orderId);
+
         if(payInfo != null){
             HashMap<String, Object> map = new HashMap<>();
             map.put("orderId",orderId);
@@ -74,9 +64,6 @@ public class PayController {
 
             // 存进缓存
             redisTemplate.opsForValue().set(orderId,reqVo);
-
-            // 把状态存入redis,1表示已经生成过二维码
-//            redisTemplate.opsForHash().put("orderId--status",orderId,"ok");
 
             return reqVo;
         }
@@ -106,19 +93,12 @@ public class PayController {
         Integer userId = mtimeUserVO.getUuid();
 
         System.out.println("当前查询次数：" + tryNums);
-        if(Integer.valueOf(tryNums) == 0){
-            data.put("orderStatus",999);
-            data.put("orderMsg","超时未支付");
-            payResultVO.setData(data);
-            return payResultVO;
-        }
 
-        // 查询是否支付
-        int status1 = payService.checkPayStatus(orderId, userId);
+        // 查询订单的支付状态
+        int status = payService.checkPayStatus(orderId, userId);
 
-        if(OrderStatus.PAY_SUCCESS.getCode() == status1){
+        if(OrderStatus.PAY_SUCCESS.getCode() == status){
             // 修改数据库，修改成功返回1，否则0
-            int status = 1; // 传入的值
             int update = payService.updateOrderStatus(orderId,userId,status);
             if(update == 1){
                 data.put("orderStatus",1);
@@ -131,10 +111,10 @@ public class PayController {
                 data.put("orderMsg","订单已经支付，但是数据库没更新成功");
                 System.out.println("订单已经支付，但是数据库没更新成功");
             }
-        } else if (OrderStatus.CLOSED.getCode() == status1){
+        } else if (OrderStatus.CLOSED.getCode() == status){
             payResultVO.setStatus(1);
             payResultVO.setMsg("订单超时，已关闭");
-        } else {
+        } else if(OrderStatus.NOT_PAY.getCode() == status){
             payResultVO.setMsg("订单未支付");
             payResultVO.setStatus(999);
         }

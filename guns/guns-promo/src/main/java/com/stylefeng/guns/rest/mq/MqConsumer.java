@@ -43,6 +43,7 @@ public class MqConsumer {
 
         mqPushConsumer.subscribe(topic,"*");
 
+        // 消息监听器
         mqPushConsumer.registerMessageListener(new MessageListenerConcurrently() {
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
