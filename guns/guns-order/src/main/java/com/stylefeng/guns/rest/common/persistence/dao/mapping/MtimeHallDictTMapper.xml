@@ -9,4 +9,15 @@
         <result column="seat_address" property="seatAddress" />
     </resultMap>
 
+    <select id="queryHallDictByFieldId" resultType="com.stylefeng.guns.rest.common.persistence.model.MtimeHallDictT">
+        select
+        h.UUID as UUID,
+        h.seat_address as seatAddress,
+        h.show_name as showName
+
+        from mtime_hall_dict_t h
+        left join mtime_field_t f on h.UUID = f.hall_id
+        where f.UUID = #{fieldId}
+    </select>
+
 </mapper>
