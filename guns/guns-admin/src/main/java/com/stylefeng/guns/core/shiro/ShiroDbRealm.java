@@ -4,7 +4,13 @@ import com.stylefeng.guns.core.shiro.factory.IShiro;
 import com.stylefeng.guns.core.shiro.factory.ShiroFactroy;
 import com.stylefeng.guns.core.util.ToolUtil;
 import com.stylefeng.guns.modular.system.model.User;
-import sun.net.www.protocol.http.AuthenticationInfo;
+import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.credential.CredentialsMatcher;
+import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
+import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.SimpleAuthorizationInfo;
+import org.apache.shiro.realm.AuthorizingRealm;
+import org.apache.shiro.subject.PrincipalCollection;
 
 
 import java.util.HashSet;
@@ -16,11 +22,21 @@ public class ShiroDbRealm extends AuthorizingRealm {
     /**
      * 登录认证
      */
+//    @Override
+//    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken)
+//            throws AuthenticationException {
+//        IShiro shiroFactory = ShiroFactroy.me();
+//        UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
+//        User user = shiroFactory.user(token.getUsername());
+//        ShiroUser shiroUser = shiroFactory.shiroUser(user);
+//        SimpleAuthenticationInfo info = shiroFactory.info(shiroUser, user, super.getName());
+//        return info;
+//    }
+
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken)
-            throws AuthenticationException {
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
         IShiro shiroFactory = ShiroFactroy.me();
-        UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
+        UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
         User user = shiroFactory.user(token.getUsername());
         ShiroUser shiroUser = shiroFactory.shiroUser(user);
         SimpleAuthenticationInfo info = shiroFactory.info(shiroUser, user, super.getName());
