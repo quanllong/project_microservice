@@ -20,12 +20,20 @@ public class TokenUtils {
     RedisTemplate redisTemplate;    // 这个redisTemplate必须用自己配置的
 
     public MtimeUserVO parseRequest(HttpServletRequest request){
-        String authorization = request.getHeader("Authorization");
-        if(authorization == null || "".equals(authorization)){
-            return null;
-        }
-        String token = authorization.substring(7);
+
+        String token = getFrontToken(request);
         MtimeUserVO user = (MtimeUserVO) redisTemplate.opsForValue().get(token);
         return user;
     }
+
+    // 取得前端传来的token
+    public String getFrontToken(HttpServletRequest request){
+        /*String authorization = request.getHeader("Authorization");
+        if(authorization == null || "".equals(authorization)){
+            return null;
+        }
+        return authorization.substring(7);*/
+        return "eyJhbGciOiJIUzUxMiJ9.eyJyYW5kb21LZXkiOiI3ZmpvaGsiLCJzdWIiOiJ1c2VyMSIsImV4cCI6MTU3OTI1MDM2NywiaWF0IjoxNTc4NjQ1NTY3fQ.XKll6TgeMyf9uecCKrFHTpAc0GxwLkh5GWvloyiQuvSWb3fggkCKFuLgTVkbtaEZLOpc-LIliR3GKu9PeeGj1w";
+    }
+
 }

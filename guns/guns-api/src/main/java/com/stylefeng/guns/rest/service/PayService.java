@@ -5,5 +5,9 @@ import com.stylefeng.guns.rest.service.vo.payvo.PayInfo;
 public interface PayService {
     PayInfo getQRCodeAddress(String orderId);
 
-    boolean check(String orderId);
+    int checkPayStatus(String orderId, Integer userId);
+
+    int updateOrderStatus(String orderId, Integer userId, int status);
+
+
 }

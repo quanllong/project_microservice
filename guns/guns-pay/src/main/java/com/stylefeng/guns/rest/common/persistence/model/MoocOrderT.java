@@ -25,7 +25,7 @@ public class MoocOrderT extends Model<MoocOrderT> {
     /**
      * 主键编号
      */
-    @TableId(value = "UUID", type = IdType.AUTO)
+    @TableId(value = "UUID", type = IdType.INPUT)
     private String uuid;
     /**
      * 影院编号

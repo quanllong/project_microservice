@@ -3,6 +3,7 @@ package com.stylefeng.guns.rest.common.persistence.dao;
 import com.baomidou.mybatisplus.mapper.BaseMapper;
 import com.stylefeng.guns.rest.common.persistence.model.MoocOrderT;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 /**
@@ -17,4 +18,7 @@ public interface MoocOrderTMapper extends BaseMapper<MoocOrderT> {
 
     @Update("update mooc_order_t set order_status = #{status} where UUID = #{orderId}")
     int updateStatusByUuid(@Param("orderId") String orderId, @Param("status") int status);
+
+    @Select("select order_status from mooc_order_t where UUID = #{orderId}")
+    Integer selectOrderStatusByOrderId(@Param("orderId")String orderId);
 }
