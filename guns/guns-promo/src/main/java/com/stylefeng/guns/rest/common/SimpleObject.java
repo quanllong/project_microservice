@@ -48,5 +48,4 @@ public class SimpleObject {
         this.user = user;
     }
 
-    // 增加一行，测试多git账号
 }
