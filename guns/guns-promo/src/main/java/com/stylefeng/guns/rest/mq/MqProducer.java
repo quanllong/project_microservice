@@ -35,7 +35,7 @@ public class MqProducer {
     @Autowired
     MtimeStockLogMapper mtimeStockLogMapper;
 
-    @Reference(interfaceClass = PromoService.class,check = false)
+    @Reference(interfaceClass = PromoService.class, check = false)
     private PromoService promoService;
 
     @Value("${mq.nameserver.addr}")
@@ -51,7 +51,7 @@ public class MqProducer {
     private String transactionProducerGroup;
 
     @PostConstruct
-    public void init(){
+    public void init() {
 
         producer = new DefaultMQProducer(producerGroup);
         producer.setNamesrvAddr(addr);
@@ -60,7 +60,7 @@ public class MqProducer {
         } catch (MQClientException e) {
             e.printStackTrace();
         }
-        log.info("producer 初始化成功!!! addr:{}",addr);
+        log.info("producer 初始化成功!!! addr:{}", addr);
 
         txProducer = new TransactionMQProducer(transactionProducerGroup);
         txProducer.setNamesrvAddr(addr);
@@ -69,7 +69,7 @@ public class MqProducer {
         } catch (MQClientException e) {
             e.printStackTrace();
         }
-        log.info("txProducer初始化成功 addr:{}",addr);
+        log.info("txProducer初始化成功 addr:{}", addr);
 
         // 设置一个事务监听器
         txProducer.setTransactionListener(new TransactionListener() {
@@ -86,31 +86,35 @@ public class MqProducer {
 
                 // 执行本地事务
                 boolean flag = false;
-                try{
-                    flag = promoService.saveOrderInfo(promoId, amount, userId,stockLogId);
-                } catch (Exception e){
+                try {
+                    flag = promoService.saveOrderInfo(promoId, amount, userId, stockLogId);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                if (!flag){
+                if (flag) {
+                    return LocalTransactionState.COMMIT_MESSAGE;
+                } else {
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
-                return LocalTransactionState.COMMIT_MESSAGE;
             }
 
             @Override
             public LocalTransactionState checkLocalTransaction(MessageExt messageExt) {
                 // 这个方法什么时候被调用
+                // 答：Mq服务器调用该方法，查询本地事务的执行结果
+                //当本地事务执行成功，才将MQ消息暴露给订阅者
+                // messageExt是msgBean
                 byte[] body = messageExt.getBody();
                 String s = new String(body);
                 MsgBean msgBean = JSON.parseObject(s, MsgBean.class);
 
                 String stockLogId = msgBean.getStockLogId();
                 MtimeStockLog stockLog = mtimeStockLogMapper.selectById(stockLogId);
-                if(stockLog.getStatus() == StockLogStatus.ORDER_SUCCESS.getStatus()){
+                if (stockLog.getStatus().equals(StockLogStatus.ORDER_SUCCESS.getStatus())) {
                     return LocalTransactionState.COMMIT_MESSAGE;
                 }
-                if(stockLog.getStatus() == StockLogStatus.ORDER_FAIL.getStatus()){
+                if (stockLog.getStatus().equals(StockLogStatus.ORDER_FAIL.getStatus())) {
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
                 return LocalTransactionState.UNKNOW;
@@ -155,9 +159,9 @@ public class MqProducer {
     }*/
 
 
-    public Boolean savePromoInfoInTransaction(String promoId, String amount, Integer userId,String stockLogId) {
+    public Boolean savePromoInfoInTransaction(String promoId, String amount, Integer userId, String stockLogId) {
 
-        // 封装要发送的消息，
+        // 封装要发送的消息，提供给MQ服务器
         // consumer的任务是更新数据库的库存，它需要promoId以及减去的amount而已
         MsgBean msgBean = new MsgBean();
         msgBean.setAmount(Integer.valueOf(amount));
@@ -175,19 +179,19 @@ public class MqProducer {
 
         TransactionSendResult transactionSendResult = null;
         try {
-            transactionSendResult = txProducer.sendMessageInTransaction(message,argsBean);
+            transactionSendResult = txProducer.sendMessageInTransaction(message, argsBean);
         } catch (MQClientException e) {
             e.printStackTrace();
             log.info("发送消息异常，可能是内存不足");
         }
 
-        if (transactionSendResult == null){
+        if (transactionSendResult == null) {
             return false;
         }
 
         // 获取本地事务执行状态
         LocalTransactionState localTransactionState = transactionSendResult.getLocalTransactionState();
-        if(LocalTransactionState.COMMIT_MESSAGE.equals(localTransactionState)){
+        if (LocalTransactionState.COMMIT_MESSAGE.equals(localTransactionState)) {
             return true;
         } else {
             return false;

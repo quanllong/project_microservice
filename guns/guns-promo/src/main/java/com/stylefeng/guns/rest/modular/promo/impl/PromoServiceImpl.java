@@ -41,6 +41,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author quanlinglong
+ */
 @Component
 @Slf4j
 @Service(interfaceClass = PromoService.class)
@@ -89,7 +92,7 @@ public class PromoServiceImpl implements PromoService {
 
             // 设置商品令牌数
             String amountKey = RedisPrefixConsistant.TOKEN_STOCK_PREFIX + promoId;
-            Integer amountValue = Integer.valueOf(stock) * 5;
+            Integer amountValue = stock * 5;
             redisTemplate.opsForValue().set(amountKey,amountValue);
 
             // 更改状态
@@ -124,7 +127,7 @@ public class PromoServiceImpl implements PromoService {
             promoData.setPromoId(promoId);
 
             // 顺手把秒杀信息加进redis，因为创建订单还要用到这些信息
-            redisTemplate.opsForValue().set(RedisStatus.REDIS_MTIME_PROMO_PREFIX + promoId,promoData);
+            redisTemplate.opsForValue().set(RedisStatus.REDIS_MTIME_PROMO_PREFIX + promoId, promoData);
         }
 
         PromoVO promoVO = new PromoVO();
@@ -142,28 +145,31 @@ public class PromoServiceImpl implements PromoService {
         return promoVO;
     }
 
-//    /**
-//     * 从reids中读库存
-//     * 如果读出stock为null，返回0
-//     * @param promoId
-//     * @return
-//     */
-//    private int getStockFromRedis(String promoId) {
-//        Object o = redisTemplate.opsForValue().get(RedisStatus.REDIS_MTIME_STOCK_PREFIX + promoId);
-//        // 如果为null,就直接查数据库
-//        if(o == null){
-//            MtimePromoStock mtimePromoStock = mtimePromoStockMapper.queryStockByPromoId(promoId);
-//            return mtimePromoStock.getStock();
-//        }
-//        if(o instanceof String){
-//            String stock = (String) o;
-//            return Integer.valueOf(stock);
-//        }
-//        if(o instanceof Integer){
-//            return (Integer) o;
-//        }
-//        return 0;
-//    }
+    /**
+     * 从reids中读库存
+     * 本来是想避免访问数据库，但实际上读redis缓存容易出现数据库和redis数据不一致问题
+     * 因此仍然采取直接读数据库
+     *
+     * 如果读出stock为null，返回0
+     * @param promoId
+     * @return
+     */
+    /*private int getStockFromRedis(String promoId) {
+        Object o = redisTemplate.opsForValue().get(RedisStatus.REDIS_MTIME_STOCK_PREFIX + promoId);
+        // 如果为null,就直接查数据库
+        if (o == null) {
+            MtimePromoStock mtimePromoStock = mtimePromoStockMapper.queryStockByPromoId(promoId);
+            return mtimePromoStock.getStock();
+        }
+        if (o instanceof String) {
+            String stock = (String) o;
+            return Integer.valueOf(stock);
+        }
+        if (o instanceof Integer) {
+            return (Integer) o;
+        }
+        return 0;
+    }*/
 
     /**
      * 生成订单前，先在库存流水表创建一条记录
@@ -187,7 +193,7 @@ public class PromoServiceImpl implements PromoService {
     }
 
     /**
-     * 这是普通的生成订单+扣减库存的做法，没有采用分布式事务
+     * 这是普通的生成订单+扣减库存的做法，采用的是本地事务，没有采用分布式事务
      * @param promoId
      * @param amount
      * @param userId
@@ -211,7 +217,7 @@ public class PromoServiceImpl implements PromoService {
         return true;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
     @Override
     public boolean saveOrderInfo(String promoId, String amount, Integer userId,String stockLogId){
         // 订单入库
@@ -227,6 +233,7 @@ public class PromoServiceImpl implements PromoService {
                     log.info("订单入库失败 ，流水表状态已经更改 。status = {}", StockLogStatus.ORDER_FAIL.getStatus());
                 }
             });
+
             throw new GunsException(GunsExceptionEnum.SERVER_ERROR);
         }
 
@@ -242,6 +249,7 @@ public class PromoServiceImpl implements PromoService {
                     log.info("更新redis缓存失败 ，流水表状态已经更改 。status = {}",StockLogStatus.ORDER_FAIL.getStatus());
                 }
             });
+
             throw new GunsException(GunsExceptionEnum.REDIS_ERROR);
         }
 

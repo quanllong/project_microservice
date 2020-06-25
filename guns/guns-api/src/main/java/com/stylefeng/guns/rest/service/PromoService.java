@@ -9,13 +9,13 @@ public interface PromoService {
 
     PromoVO getPromoInfo(PromoParams promoParams);
 
-    boolean establishOrder(String promoId, String amount, Integer userId,String stockLogId);
+    boolean establishOrder(String promoId, String amount, Integer userId, String stockLogId);
 
-    boolean saveOrderInfo(String promoId, String amount, Integer userId,String stockLogId);
+    boolean saveOrderInfo(String promoId, String amount, Integer userId, String stockLogId);
 
     String initPromoStockLog(String promoId, String amount);
 
-    Boolean establishOrderInTransaction(String promoId, String amount, Integer userId,String stockLogId);
+    Boolean establishOrderInTransaction(String promoId, String amount, Integer userId, String stockLogId);
 
-    String generateToken(String promoId,Integer userId);
+    String generateToken(String promoId, Integer userId);
 }

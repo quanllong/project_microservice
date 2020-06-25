@@ -33,15 +33,13 @@ public class MqConsumer {
 
     private DefaultMQPushConsumer mqPushConsumer;
 
-//    @Autowired
-//    StockMapper mapper;
 
     @PostConstruct
     public void init() throws MQClientException {
         mqPushConsumer = new DefaultMQPushConsumer("consumer_group");
         mqPushConsumer.setNamesrvAddr(addr);
 
-        mqPushConsumer.subscribe(topic,"*");
+        mqPushConsumer.subscribe(topic, "*");
 
         // 消息监听器
         mqPushConsumer.registerMessageListener(new MessageListenerConcurrently() {
@@ -57,32 +55,32 @@ public class MqConsumer {
 
                 String promoId = null;
                 Integer amount = null;
-                try{
-                    promoId = (String)hashMap.get("promoId");
+                try {
+                    promoId = (String) hashMap.get("promoId");
                     amount = (Integer) hashMap.get("amount");
-                } catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
-                    log.info("类型转换异常，promoId:{},amount:{}",promoId);
+                    log.info("类型转换异常，promoId:{},amount:{}", promoId, amount);
                 }
 
-                log.info("收到消息，promoId:{}， amount:{}",promoId,amount);
+                log.info("收到消息，promoId:{}， amount:{}", promoId, amount);
 
-                //有重试机制 16次
+                //如果consumer收到消息了，但是没有消费成功，会重试消费
+                // 有重试机制16次
 
                 // 真正去减数据库的库存
-                int update = 0;
-                try{
-                    update = mtimePromoStockMapper.updateStock(promoId, amount);
-                } catch (Exception e){
+                try {
+                    int update = mtimePromoStockMapper.updateStock(promoId, amount);
+                    if (update == 1) {
+                        log.info("更新库存成功：promoId:{}, stock:{}", promoId, amount);
+                        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
-                    log.info("更改数据库库存失败promoId:{}, amount:{}",promoId,amount);
-                    // return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+                    log.info("更改数据库库存失败promoId:{}, amount:{}", promoId, amount);
+                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                 }
 
-                if(update == 1){
-                    log.info("更新库存成功：promoId:{}, stock:{}",promoId,amount);
-                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-                }
                 return ConsumeConcurrentlyStatus.RECONSUME_LATER;
             }
         });
